@@ -4,6 +4,9 @@ import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { useAuthStore } from '@/auth/store';
 import { Layout } from '@/components/Layout';
 import { LoginScreen } from '@/screens/LoginScreen';
+import { MatchScreen } from '@/screens/MatchScreen';
+import { MatchesScreen } from '@/screens/MatchesScreen';
+import { NewMatchScreen } from '@/screens/NewMatchScreen';
 import { PlayersScreen } from '@/screens/PlayersScreen';
 
 export function App() {
@@ -26,7 +29,10 @@ export function App() {
     <HashRouter>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={<PlayersScreen />} />
+          <Route path="/" element={<MatchesScreen />} />
+          <Route path="/partidos/nuevo" element={<NewMatchScreen />} />
+          <Route path="/partidos/:id" element={<MatchScreen />} />
+          <Route path="/alumnos" element={<PlayersScreen />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

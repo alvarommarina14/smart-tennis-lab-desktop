@@ -19,6 +19,9 @@ export function Layout() {
 
         <nav className="layout__nav">
           <NavLink to="/" end className="layout__link">
+            Partidos
+          </NavLink>
+          <NavLink to="/alumnos" className="layout__link">
             Alumnos
           </NavLink>
         </nav>
