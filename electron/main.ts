@@ -127,6 +127,18 @@ function createWindow() {
 
   window.once('ready-to-show', () => window.show());
 
+  // En desarrollo, lo que pasa en el renderer tiene que verse en la consola donde corre la app:
+  // si no, una pantalla en blanco no dice nada.
+  if (isDev) {
+    window.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+      console.log(`[renderer:${level}] ${message} (${sourceId}:${line})`);
+    });
+    window.webContents.on('did-fail-load', (_event, code, description) => {
+      console.log(`[renderer] no cargó: ${description} (${code})`);
+    });
+    window.webContents.openDevTools({ mode: 'detach' });
+  }
+
   if (isDev) {
     window.loadURL(DEV_SERVER_URL);
   } else {
