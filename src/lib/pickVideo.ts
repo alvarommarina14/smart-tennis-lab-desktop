@@ -6,3 +6,16 @@ export async function pickVideoFile(): Promise<string | null> {
   }
   return window.stl.video.pick();
 }
+
+export async function videoFileExists(filePath: string): Promise<boolean> {
+  if (!window.stl?.video) {
+    return false;
+  }
+  return window.stl.video.exists(filePath);
+}
+
+// El video no se carga por file://, que Electron bloquea desde una página servida por http. Va por
+// un protocolo propio que solo sirve los archivos que el profe eligió.
+export function videoUrl(filePath: string) {
+  return `stl-video://local/?path=${encodeURIComponent(filePath)}`;
+}

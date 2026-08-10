@@ -10,6 +10,7 @@ declare global {
       };
       video: {
         pick: () => Promise<string | null>;
+        exists: (filePath: string) => Promise<boolean>;
       };
     };
   }

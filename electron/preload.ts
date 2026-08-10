@@ -10,6 +10,7 @@ const bridge = {
   },
   video: {
     pick: (): Promise<string | null> => ipcRenderer.invoke('video:pick'),
+    exists: (filePath: string): Promise<boolean> => ipcRenderer.invoke('video:exists', filePath),
   },
 };
 
