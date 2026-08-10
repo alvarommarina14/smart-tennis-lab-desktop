@@ -1,0 +1,29 @@
+.login {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: var(--space-xl);
+}
+
+.login__form {
+  width: 100%;
+  max-width: 380px;
+}
+
+.login__title {
+  margin: 0;
+  font-size: 24px;
+}
+
+.login__subtitle {
+  margin: var(--space-xs) 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.login__hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
