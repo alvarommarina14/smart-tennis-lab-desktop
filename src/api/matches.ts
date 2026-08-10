@@ -50,6 +50,9 @@ export type SyncEvent = {
   setId: string | null;
   kpiCode: string;
   occurredAt: string;
+  // Momento dentro del video, contado desde la marca de inicio del partido. Solo lo manda desktop:
+  // en la cancha, en vivo, no hay video contra el cual medir.
+  videoOffsetMs?: number;
   clientSeq: number;
   deleted: boolean;
 };
