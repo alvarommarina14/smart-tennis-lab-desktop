@@ -17,13 +17,31 @@ let accessToken: string | null = null;
 let refreshToken: string | null = null;
 let pendingRefresh: Promise<string | null> | null = null;
 let onSessionLost: (() => void) | null = null;
+let memoryOnlySession: string | null = null;
+
+// En Electron el puente siempre está. Abrir el renderer suelto en el navegador es útil para
+// debuggear la UI, y ahí la sesión vive en memoria y se pierde al recargar.
+function sessionStore() {
+  if (typeof window !== 'undefined' && window.stl?.session) {
+    return window.stl.session;
+  }
+  return {
+    read: async () => memoryOnlySession,
+    write: async (payload: string) => {
+      memoryOnlySession = payload;
+    },
+    clear: async () => {
+      memoryOnlySession = null;
+    },
+  };
+}
 
 export function setSessionLostHandler(handler: (() => void) | null) {
   onSessionLost = handler;
 }
 
 export async function restoreSession() {
-  const stored = await window.stl.session.read();
+  const stored = await sessionStore().read();
   if (stored) {
     try {
       const parsed = JSON.parse(stored) as { accessToken: string; refreshToken: string };
@@ -39,7 +57,7 @@ export async function restoreSession() {
 export async function saveSession(payload: AuthPayload) {
   accessToken = payload.accessToken;
   refreshToken = payload.refreshToken;
-  await window.stl.session.write(
+  await sessionStore().write(
     JSON.stringify({ accessToken: payload.accessToken, refreshToken: payload.refreshToken })
   );
 }
@@ -47,7 +65,7 @@ export async function saveSession(payload: AuthPayload) {
 export async function clearSession() {
   accessToken = null;
   refreshToken = null;
-  await window.stl.session.clear();
+  await sessionStore().clear();
 }
 
 export function getAccessToken() {

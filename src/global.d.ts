@@ -2,7 +2,7 @@ export {};
 
 declare global {
   interface Window {
-    stl: {
+    stl?: {
       session: {
         read: () => Promise<string | null>;
         write: (payload: string) => Promise<void>;
