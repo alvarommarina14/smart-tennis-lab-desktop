@@ -1,11 +1,11 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ApiError } from '@/api/client';
 import { createMatch, type MatchFormat, type Surface } from '@/api/matches';
-import { fetchPlayers, playerName } from '@/api/players';
-import { EmptyState, Row, ScreenHeader } from '@/components/List';
+import { fetchPlayers, playerName, sortByName } from '@/api/players';
+import { EmptyState, ScreenHeader } from '@/components/List';
 import { Button, Card, ErrorBox, Field } from '@/components/ui';
 import { SURFACE_OPTIONS } from '@/lib/format';
 import { pickVideoFile } from '@/lib/pickVideo';
@@ -28,6 +28,7 @@ export function NewMatchScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const players = useQuery({ queryKey: ['players'], queryFn: () => fetchPlayers() });
+  const sortedPlayers = useMemo(() => sortByName(players.data ?? []), [players.data]);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -67,7 +68,10 @@ export function NewMatchScreen() {
 
   return (
     <form onSubmit={submit}>
-      <ScreenHeader title="Analizar un partido" />
+      <ScreenHeader
+        title="Analizar un partido"
+        lede="Un partido siempre es de un alumno. El video se elige al final y se queda en esta máquina."
+      />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xl)' }}>
         {error ? <ErrorBox title={error} /> : null}
@@ -77,19 +81,29 @@ export function NewMatchScreen() {
           {players.data?.length === 0 ? (
             <EmptyState
               title="No tenés alumnos cargados"
-              hint="Un partido siempre es de un alumno: cargá al primero desde Alumnos."
+              hint="Un partido siempre es de un alumno: cargá al primero para poder empezar."
+              action={{
+                label: 'Cargar un alumno',
+                onClick: () => navigate('/alumnos', { state: { openCreate: true } }),
+              }}
             />
-          ) : null}
-          <div className="stl-stack">
-            {players.data?.map((player) => (
-              <Row
-                key={player.id}
-                title={playerName(player)}
-                selected={player.id === playerId}
-                onClick={() => setPlayerId(player.id)}
-              />
-            ))}
-          </div>
+          ) : (
+            <label className="stl-field">
+              <span className="stl-field__label">Elegí al alumno</span>
+              <select
+                className="stl-input"
+                value={playerId ?? ''}
+                onChange={(event) => setPlayerId(event.target.value || null)}
+              >
+                <option value="">Sin elegir</option>
+                {sortedPlayers.map((player) => (
+                  <option key={player.id} value={player.id}>
+                    {playerName(player)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </Card>
 
         <Card>

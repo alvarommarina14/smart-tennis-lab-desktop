@@ -43,3 +43,14 @@ export function archivePlayer(playerId: string) {
 export function playerName(player: Player) {
   return `${player.firstName} ${player.lastName}`;
 }
+
+// Orden alfabético por nombre y después apellido, con las reglas del español (la ñ después de la n,
+// sin distinguir mayúsculas ni tildes).
+const NAME_COLLATOR = new Intl.Collator('es', { sensitivity: 'base', numeric: true });
+
+export function sortByName(players: Player[]) {
+  return [...players].sort((a, b) => {
+    const byFirst = NAME_COLLATOR.compare(a.firstName, b.firstName);
+    return byFirst !== 0 ? byFirst : NAME_COLLATOR.compare(a.lastName, b.lastName);
+  });
+}

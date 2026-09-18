@@ -1,14 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import { ApiError } from '@/api/client';
-import { createPlayer, fetchPlayers, playerName, type DominantHand } from '@/api/players';
+import {
+  createPlayer,
+  fetchPlayers,
+  playerName,
+  sortByName,
+  type DominantHand,
+} from '@/api/players';
 import { EmptyState, Row, ScreenHeader } from '@/components/List';
-import { Button, Card, ErrorBox, Field } from '@/components/ui';
+import { Button, Card, DateField, ErrorBox, Field } from '@/components/ui';
 import { formatDate } from '@/lib/format';
 
 export function PlayersScreen() {
-  const [creating, setCreating] = useState(false);
+  const location = useLocation();
+  const openCreate = Boolean((location.state as { openCreate?: boolean } | null)?.openCreate);
+  const [creating, setCreating] = useState(openCreate);
 
   const { data, isPending, error } = useQuery({
     queryKey: ['players'],
@@ -19,6 +28,7 @@ export function PlayersScreen() {
     <>
       <ScreenHeader
         title="Alumnos"
+        lede="Cada alumno junta los partidos que le vas analizando."
         actions={
           <Button onClick={() => setCreating((open) => !open)}>
             {creating ? 'Cancelar' : 'Nuevo alumno'}
@@ -39,7 +49,7 @@ export function PlayersScreen() {
       ) : null}
 
       <div className="stl-stack">
-        {data?.map((player) => (
+        {sortByName(data ?? []).map((player) => (
           <Row
             key={player.id}
             title={playerName(player)}
@@ -106,11 +116,10 @@ function NewPlayerForm({ onDone }: { onDone: () => void }) {
           onChange={(event) => setLastName(event.target.value)}
           error={fields.lastName}
         />
-        <Field
+        <DateField
           label="Fecha de nacimiento (opcional)"
-          type="date"
           value={birthDate}
-          onChange={(event) => setBirthDate(event.target.value)}
+          onChange={setBirthDate}
           error={fields.birthDate}
         />
         <label className="stl-field">

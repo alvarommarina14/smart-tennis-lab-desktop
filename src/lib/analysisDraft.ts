@@ -39,3 +39,34 @@ export function writeDraft(matchId: string, draft: AnalysisDraft) {
 export function clearDraft(matchId: string) {
   localStorage.removeItem(key(matchId));
 }
+
+const PREFIX = 'stl.analysis.';
+
+export type DraftSummary = {
+  matchId: string;
+  total: number;
+  pending: number;
+};
+
+// Recorre los borradores guardados en esta máquina y devuelve los que todavía tienen eventos sin
+// subir. La Biblioteca los muestra aparte para que el profe sepa qué partidos le quedaron a medio
+// sincronizar.
+export function listPendingDrafts(): DraftSummary[] {
+  const out: DraftSummary[] = [];
+  for (let i = 0; i < localStorage.length; i += 1) {
+    const storageKey = localStorage.key(i);
+    if (!storageKey || !storageKey.startsWith(PREFIX)) {
+      continue;
+    }
+    try {
+      const draft = JSON.parse(localStorage.getItem(storageKey) ?? '') as AnalysisDraft;
+      const pending = draft.events.filter((event) => !event.synced).length;
+      if (pending > 0) {
+        out.push({ matchId: storageKey.slice(PREFIX.length), total: draft.events.length, pending });
+      }
+    } catch {
+      // Un borrador ilegible no bloquea la lista.
+    }
+  }
+  return out;
+}
