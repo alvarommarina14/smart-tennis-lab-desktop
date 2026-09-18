@@ -14,6 +14,7 @@ type AuthState = {
   status: 'loading' | 'signedIn' | 'signedOut';
   bootstrap: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -41,6 +42,12 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signIn: async (email, password) => {
     const payload = await authApi.login(email, password);
+    await saveSession(payload);
+    set({ coach: payload.coach, status: 'signedIn' });
+  },
+
+  signUp: async (email, password, fullName) => {
+    const payload = await authApi.register(email, password, fullName);
     await saveSession(payload);
     set({ coach: payload.coach, status: 'signedIn' });
   },
