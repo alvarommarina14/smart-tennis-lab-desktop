@@ -1,0 +1,115 @@
+.stl-section + .stl-section {
+  margin-top: var(--space-xl);
+}
+
+.stl-section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: 0 0 var(--space-md);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.stl-section-title__count {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 1px 7px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.stl-tablewrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.stl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.stl-table thead th {
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.stl-table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text-muted);
+  vertical-align: middle;
+}
+
+.stl-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.stl-table tbody tr.stl-table__row--link {
+  cursor: pointer;
+}
+
+.stl-table tbody tr.stl-table__row--link:hover {
+  background: var(--surface-2);
+}
+
+.stl-table__strong {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.stl-table__mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.stl-table__actions {
+  text-align: right;
+  width: 1%;
+  white-space: nowrap;
+}
+
+.stl-tag {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.stl-tag--live {
+  background: rgba(251, 191, 36, 0.14);
+  color: var(--warning);
+  border-color: transparent;
+}
+
+.stl-tag--done {
+  background: rgba(52, 211, 153, 0.14);
+  color: var(--success);
+  border-color: transparent;
+}
+
+.stl-tag--draft {
+  background: var(--primary-tint);
+  color: var(--primary-bright);
+  border-color: transparent;
+}

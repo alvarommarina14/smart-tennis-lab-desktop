@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { Button } from './ui';
+
 import './List.css';
 
 type RowProps = {
@@ -41,20 +43,38 @@ function RowBody({ title, subtitle, badge, selected }: Omit<RowProps, 'onClick'>
   );
 }
 
-export function EmptyState({ title, hint }: { title: string; hint?: string }) {
+type EmptyStateProps = {
+  title: string;
+  hint?: string;
+  action?: { label: string; onClick: () => void };
+};
+
+export function EmptyState({ title, hint, action }: EmptyStateProps) {
   return (
     <div className="stl-empty">
       <strong>{title}</strong>
       {hint ? <span>{hint}</span> : null}
+      {action ? <Button onClick={action.onClick}>{action.label}</Button> : null}
     </div>
   );
 }
 
-export function ScreenHeader({ title, actions }: { title: string; actions?: ReactNode }) {
+export function ScreenHeader({
+  title,
+  lede,
+  actions,
+}: {
+  title: string;
+  lede?: string;
+  actions?: ReactNode;
+}) {
   return (
     <header className="stl-screen-header">
-      <h1>{title}</h1>
-      {actions ? <div className="stl-screen-header__actions">{actions}</div> : null}
+      <div className="stl-screen-header__bar">
+        <h1>{title}</h1>
+        {actions ? <div className="stl-screen-header__actions">{actions}</div> : null}
+      </div>
+      {lede ? <p className="stl-screen-header__lede">{lede}</p> : null}
     </header>
   );
 }

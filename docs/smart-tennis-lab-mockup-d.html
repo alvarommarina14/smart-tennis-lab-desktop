@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Tennis Lab — Dirección D · Estudio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* ================================================================
+     DIRECCIÓN D — "ESTUDIO"
+     La sala de montaje (Dirección C) rehecha en un lenguaje minimalista
+     y oscuro: slate profundo, un solo índigo eléctrico, Inter ajustada,
+     mono para timecodes y atajos. Menos bordes, más aire — energía de
+     herramienta de software (Linear / Vercel), no de tablero deportivo.
+     El video se scrubea sobre una línea de tiempo con el cabezal y los
+     eventos del partido marcados encima.
+     ================================================================ */
+  :root{
+    --bg:#0c0d11; --panel:#131519; --panel-2:#181b21; --raised:#1d2027;
+    --line:#262a33; --line-soft:#20242c;
+    --text:#d4d8e0; --text-soft:#8b93a1; --text-faint:#5c636f; --white:#f4f6fa;
+    --indigo:#6366f1; --indigo-bright:#818cf8; --indigo-tint:rgba(99,102,241,.14);
+    --green:#34d399; --amber:#fbbf24; --red:#f2555a;
+    --radius:12px; --radius-sm:8px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);
+    -webkit-font-smoothing:antialiased;line-height:1.5;font-size:13.5px;padding-bottom:72px;
+    background-image:radial-gradient(700px 340px at 82% -6%,rgba(99,102,241,.10),transparent)}
+  h1,h2,h3,h4{color:var(--white);font-weight:700;letter-spacing:-.02em;line-height:1.15}
+  .m{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  button{font-family:inherit;cursor:pointer;color:inherit}
+  kbd{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--raised);border:1px solid var(--line);
+    border-bottom-width:2px;border-radius:5px;padding:1px 5px;color:var(--text-soft)}
+  .lab{font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;font-size:10px;
+    color:var(--text-faint);font-weight:500}
+
+  /* ---------- top bar ---------- */
+  .topbar{position:sticky;top:0;z-index:40;background:rgba(12,13,17,.8);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .topbar-in{max-width:1240px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .dot{width:22px;height:22px;border-radius:7px;background:linear-gradient(140deg,var(--indigo),#22d3ee)}
+  .brand strong{font-size:14px;font-weight:700;color:var(--white);letter-spacing:-.01em}
+  .brand span{font-size:12px;color:var(--text-faint)}
+  .top-actions{display:flex;align-items:center;gap:12px}
+  .cmdk{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:7px 10px;font-size:12px;color:var(--text-faint)}
+  .switch{display:flex;gap:3px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:3px}
+  .switch button{border:0;background:transparent;color:var(--text-soft);font-size:12.5px;font-weight:500;padding:7px 14px;border-radius:6px}
+  .switch button.on{background:var(--raised);color:var(--white);box-shadow:0 0 0 1px var(--line)}
+  .dirnote{max-width:1240px;margin:0 auto;padding:11px 24px;font-size:12px;color:var(--text-faint);line-height:1.6}
+  .dirnote b{color:var(--indigo-bright);font-weight:600}
+
+  main{max-width:1240px;margin:0 auto;padding:26px 24px}
+  .screen[hidden]{display:none}
+
+  /* ---------- desk (rail + main) ---------- */
+  .desk{display:grid;grid-template-columns:212px 1fr;border:1px solid var(--line);border-radius:var(--radius);
+    overflow:hidden;background:var(--panel);min-height:640px}
+  .rail{background:var(--panel-2);border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:2px}
+  .rail .who{display:flex;align-items:center;gap:10px;padding:6px 10px 14px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+  .rail .who .av{width:28px;height:28px;border-radius:8px;background:linear-gradient(140deg,var(--indigo),#22d3ee);flex:none}
+  .rail .who strong{font-size:13px;color:var(--white);display:block}
+  .rail .who span{font-size:11px;color:var(--text-faint)}
+  .rail button{border:0;background:transparent;text-align:left;font-size:13px;font-weight:500;color:var(--text-soft);
+    padding:9px 11px;border-radius:7px;width:100%;display:flex;justify-content:space-between;align-items:center}
+  .rail button:hover{background:var(--raised)}
+  .rail button.on{background:var(--raised);color:var(--white);box-shadow:inset 2px 0 0 var(--indigo)}
+  .rail .out{margin-top:auto;color:var(--text-faint)}
+  .deskmain{padding:24px 28px;min-width:0;display:flex;flex-direction:column}
+
+  .dhead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}
+  .dhead h1{font-size:24px}
+  .dhead .lede{color:var(--text-soft);font-size:13px;margin-top:5px}
+  .acts{display:flex;gap:8px}
+  .btn{display:inline-flex;align-items:center;gap:7px;background:var(--raised);border:1px solid var(--line);border-radius:8px;
+    color:var(--text);font-size:12.5px;font-weight:600;padding:8px 13px}
+  .btn:hover{border-color:var(--text-faint)}
+  .btn.pri{background:var(--indigo);border-color:var(--indigo);color:#fff}
+  .btn.pri:hover{background:var(--indigo-bright)}
+
+  .section-title{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--text-faint);margin:22px 0 10px;display:flex;align-items:center;gap:8px}
+  .section-title:first-of-type{margin-top:0}
+  .count{background:var(--raised);border:1px solid var(--line);border-radius:20px;padding:1px 7px;font-size:10.5px;color:var(--text-soft)}
+
+  /* ---------- library table ---------- */
+  .tablewrap{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{text-align:left;font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--text-faint);padding:10px 14px;background:var(--panel-2);border-bottom:1px solid var(--line)}
+  tbody td{padding:12px 14px;border-bottom:1px solid var(--line-soft);color:var(--text-soft)}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:var(--panel-2)}
+  td.strong{color:var(--white);font-weight:600}
+  .tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.05em;
+    text-transform:uppercase;padding:2px 7px;border-radius:5px;background:var(--raised);border:1px solid var(--line);color:var(--text-soft)}
+  .tag.live{background:rgba(251,191,36,.14);color:var(--amber);border-color:transparent}
+  .tag.done{background:rgba(52,211,153,.14);color:var(--green);border-color:transparent}
+  .tag.draft{background:var(--indigo-tint);color:var(--indigo-bright);border-color:transparent}
+
+  /* ---------- montaje ---------- */
+  .split{display:grid;grid-template-columns:1.55fr 1fr;gap:20px;align-items:start}
+  .viewer{aspect-ratio:16/9;border-radius:var(--radius);border:1px solid var(--line);overflow:hidden;position:relative;
+    background:linear-gradient(135deg,#1a1d24,#0e0f13);display:flex;align-items:center;justify-content:center}
+  .viewer .play{width:54px;height:54px;border-radius:50%;background:var(--indigo);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 30px rgba(99,102,241,.5)}
+  .viewer .play::after{content:'';border-left:15px solid #fff;border-top:9px solid transparent;border-bottom:9px solid transparent;margin-left:4px}
+  .viewer .hud{position:absolute;left:14px;top:14px;display:flex;gap:7px}
+  .viewer .hud span{font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(12,13,17,.6);border:1px solid var(--line);
+    border-radius:6px;padding:3px 8px;color:var(--text-soft)}
+
+  .timeline{margin-top:14px}
+  .ruler{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-faint);margin-bottom:5px}
+  .track{position:relative;height:30px;border-radius:8px;background:var(--panel-2);border:1px solid var(--line);overflow:hidden}
+  .track .scrubbed{position:absolute;left:0;top:0;bottom:0;width:34%;background:var(--indigo-tint)}
+  .track .ev{position:absolute;top:5px;bottom:5px;width:2px;border-radius:1px;background:var(--text-soft)}
+  .track .ev.win{background:var(--green)}.track .ev.lose{background:var(--red)}
+  .track .head{position:absolute;top:-2px;bottom:-2px;left:34%;width:2px;background:var(--indigo-bright);box-shadow:0 0 8px var(--indigo)}
+  .track .head::after{content:'';position:absolute;top:-2px;left:-4px;border:5px solid transparent;border-top-color:var(--indigo-bright)}
+  .transport{display:flex;align-items:center;gap:7px;margin-top:12px}
+  .transport button{background:var(--raised);border:1px solid var(--line);border-radius:7px;padding:6px 9px;
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-soft)}
+  .transport button.pl{background:var(--indigo);border-color:var(--indigo);color:#fff;min-width:40px}
+  .transport .tc{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-faint)}
+  .hintline{margin-top:14px;font-size:12px;color:var(--text-soft);line-height:1.7}
+
+  .panel{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel-2);overflow:hidden}
+  .panel .ph{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em;font-size:10px;color:var(--text-faint)}
+  .panel .ph button{border:0;background:0;color:var(--indigo-bright);font-size:11px;display:flex;align-items:center;gap:5px}
+  .panel .pb{padding:12px 14px}
+  .grp{margin-bottom:14px}
+  .grp:last-child{margin-bottom:0}
+  .grp .gt{font-size:11px;color:var(--text-faint);margin-bottom:7px}
+  .keys{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .key{display:flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:8px 9px;text-align:left;font-size:12px;font-weight:500;color:var(--text)}
+  .key:hover{border-color:var(--indigo)}
+  .key .n{margin-left:auto;font-family:'JetBrains Mono',monospace;color:var(--text-faint);font-size:11px}
+  .key.on{background:var(--indigo-tint);border-color:var(--indigo)}
+  .key.off{opacity:.3;pointer-events:none}
+  .key.win{border-color:rgba(52,211,153,.4)}.key.win .n{color:var(--green)}
+  .key.lose{border-color:rgba(242,85,90,.4)}.key.lose .n{color:var(--red)}
+  .key.full{grid-column:1/-1}
+
+  .statusbar{display:flex;gap:18px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--text-faint)}
+  .statusbar b{color:var(--text-soft);font-weight:500}
+
+  /* ---------- report ---------- */
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:8px}
+  .tile{border:1px solid var(--line);border-radius:var(--radius);padding:14px;background:var(--panel-2)}
+  .tile .v{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:600;color:var(--white);margin-top:8px}
+  .tile .v small{font-size:13px;color:var(--text-faint)}
+  .tile .spark{display:flex;align-items:flex-end;gap:3px;height:22px;margin-top:10px}
+  .tile .spark i{flex:1;background:var(--indigo);border-radius:1px;opacity:.4}
+  .tile .spark i:last-child{opacity:1}
+  td .b{display:inline-block;height:6px;border-radius:3px;background:var(--indigo);vertical-align:middle;margin-right:8px}
+
+  /* ---------- new ---------- */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .box{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel-2);padding:16px}
+  .box.full{grid-column:1/-1}
+  .box h3{font-size:13.5px;margin-bottom:12px}
+  .opts{display:flex;flex-wrap:wrap;gap:7px}
+  .opts button{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:7px 12px;font-size:12px;font-weight:600;color:var(--text-soft)}
+  .opts button.on{background:var(--indigo);border-color:var(--indigo);color:#fff}
+  .f{display:block;margin-bottom:11px}
+  .f .lab{display:block;margin-bottom:5px}
+  .f input,.f select{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 11px;
+    color:var(--text);font:inherit;font-size:12.5px}
+  .f input:focus,.f select:focus{outline:none;border-color:var(--indigo)}
+  .privacy{border-left:2px solid var(--indigo);padding-left:12px;font-size:12px;color:var(--text-soft);line-height:1.65}
+
+  @media(max-width:1040px){
+    .desk{grid-template-columns:1fr}
+    .rail{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}
+    .rail .who,.rail .out{display:none}
+    .split,.tiles,.cols{grid-template-columns:1fr}
+    .cmdk,.switch{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="brand"><span class="dot"></span><strong>Smart Tennis Lab</strong><span>/ Escritorio</span></div>
+    <div class="top-actions">
+      <div class="cmdk"><kbd>⌘</kbd><kbd>K</kbd> Buscar</div>
+      <nav class="switch">
+        <button class="on" data-scr="matches">Biblioteca</button>
+        <button data-scr="analysis">Montaje</button>
+        <button data-scr="report">Reporte</button>
+        <button data-scr="new">Nuevo</button>
+      </nav>
+    </div>
+  </div>
+</div>
+<p class="dirnote">
+  <b>Dirección D · Estudio</b> — la sala de montaje de la Dirección C rehecha en clave minimalista
+  y oscura: slate profundo, un solo índigo eléctrico, Inter ajustada y mono para timecodes y atajos.
+  Menos bordes, más aire. El partido se scrubea sobre una línea de tiempo con el cabezal y los
+  eventos marcados encima.
+</p>
+
+<main>
+
+  <!-- ===================== BIBLIOTECA ===================== -->
+  <section class="screen" data-scr="matches">
+    <div class="desk">
+      <aside class="rail">
+        <div class="who"><span class="av"></span><div><strong>Prof. Martín Aguilar</strong><span>Club Náutico Hacoaj</span></div></div>
+        <button class="on">Partidos <kbd>1</kbd></button>
+        <button>Alumnos <kbd>2</kbd></button>
+        <button class="out">Salir</button>
+      </aside>
+      <div class="deskmain">
+        <div class="dhead">
+          <div><h1>Biblioteca</h1><p class="lede">El video se queda en esta máquina. Al servidor solo viajan los KPIs y el minuto de cada uno dentro de la grabación.</p></div>
+          <div class="acts"><button class="btn pri">+ Analizar un partido <kbd>N</kbd></button></div>
+        </div>
+
+        <div class="section-title">A revisar <span class="count">3</span></div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Alumno</th><th>Rival</th><th>Torneo</th><th>Superficie</th><th>Fecha</th><th>Marcador</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr><td class="strong">Álvaro Marina</td><td>Javier Pérez</td><td>Interclubes APT · 1ra</td><td>Polvo</td><td class="m">09/09 20:30</td><td class="m">S2 · 4–3 · 40</td><td><span class="tag live">en curso</span></td></tr>
+              <tr><td class="strong">Sofía Ledesma</td><td>M. Roggero</td><td>Torneo Menores G3</td><td>Cemento</td><td class="m">06/09 10:00</td><td class="m">6–4 7–5</td><td><span class="tag done">terminado</span></td></tr>
+              <tr><td class="strong">Tomás Vera</td><td>I. Funes</td><td>Amistoso</td><td>Polvo</td><td class="m">01/09 18:15</td><td class="m">4–6 6–3 10–7</td><td><span class="tag done">terminado</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="section-title">Borradores sin sincronizar <span class="count">1</span></div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Alumno</th><th>Eventos</th><th>Sin subir</th><th>Última carga</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="strong">Nicolás Ferro</td><td class="m">231</td><td class="m">12</td><td class="m">28/08 17:00</td><td><button class="btn">Reanudar</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MONTAJE ===================== -->
+  <section class="screen" data-scr="analysis" hidden>
+    <div class="desk">
+      <aside class="rail">
+        <div class="who"><span class="av"></span><div><strong>Prof. Martín Aguilar</strong><span>Club Náutico Hacoaj</span></div></div>
+        <button class="on">Partidos <kbd>1</kbd></button>
+        <button>Alumnos <kbd>2</kbd></button>
+        <button class="out">Salir</button>
+      </aside>
+      <div class="deskmain">
+        <div class="dhead">
+          <div><h1>Marina · Pérez</h1><p class="lede">Interclubes APT · 1ra — polvo · 3 eventos · al día</p></div>
+          <div class="acts">
+            <button class="btn">Eventos <kbd>E</kbd></button>
+            <button class="btn">Sincronizar <kbd>⌘S</kbd></button>
+          </div>
+        </div>
+
+        <div class="split">
+          <div>
+            <div class="viewer">
+              <div class="hud"><span>MARINA 6 4 · 40</span><span>PÉREZ 4 3 · 30</span><span>SET 2</span></div>
+              <div class="play"></div>
+            </div>
+            <div class="timeline">
+              <div class="ruler"><span>0:00</span><span>15:00</span><span>30:00</span><span>45:00</span><span>1:00:01</span></div>
+              <div class="track">
+                <div class="scrubbed"></div>
+                <span class="ev" style="left:9%"></span><span class="ev win" style="left:15%"></span>
+                <span class="ev" style="left:21%"></span><span class="ev lose" style="left:27%"></span>
+                <span class="ev win" style="left:32%"></span>
+                <span class="head"></span>
+              </div>
+            </div>
+            <div class="transport">
+              <button>«10</button><button>«3</button><button class="pl">❚❚</button><button>3»</button><button>10»</button>
+              <span class="tc">20:14:03 / 1:00:01:00</span>
+            </div>
+            <p class="hintline">
+              Marcá primero dónde empieza el partido en el video. <kbd>Espacio</kbd> reproduce y pausa ·
+              J K L para el jog · <kbd>M</kbd> marca en el cabezal · <kbd>Z</kbd> deshace la última.
+            </p>
+          </div>
+
+          <aside class="panel">
+            <div class="ph"><span>Inspector · Tagging</span><button>↶ deshacer <kbd>Z</kbd></button></div>
+            <div class="pb">
+              <div class="grp">
+                <div class="gt">Saque</div>
+                <div class="keys">
+                  <button class="key on"><kbd>Q</kbd>1er IN <span class="n">1</span></button>
+                  <button class="key off"><kbd>W</kbd>1er OUT <span class="n">0</span></button>
+                  <button class="key off"><kbd>E</kbd>2do IN <span class="n">0</span></button>
+                  <button class="key"><kbd>A</kbd>Ace <span class="n">0</span></button>
+                  <button class="key off"><kbd>S</kbd>Doble falta <span class="n">0</span></button>
+                  <button class="key off"><kbd>D</kbd>Err. OUT <span class="n">0</span></button>
+                </div>
+              </div>
+              <div class="grp">
+                <div class="gt">Devolución</div>
+                <div class="keys">
+                  <button class="key on"><kbd>R</kbd>En juego <span class="n">1</span></button>
+                  <button class="key off"><kbd>F</kbd>Err. OUT <span class="n">0</span></button>
+                  <button class="key off"><kbd>G</kbd>Err. NET <span class="n">0</span></button>
+                  <button class="key"><kbd>T</kbd>Gan. 1er <span class="n">0</span></button>
+                </div>
+              </div>
+              <div class="grp">
+                <div class="gt">Definición y rally</div>
+                <div class="keys">
+                  <button class="key on"><kbd>1</kbd>Winner <span class="n">1</span></button>
+                  <button class="key"><kbd>2</kbd>No forzado <span class="n">0</span></button>
+                  <button class="key on"><kbd>3</kbd>Rally 1–4 <span class="n">1</span></button>
+                  <button class="key"><kbd>4</kbd>Rally 5–8 <span class="n">0</span></button>
+                </div>
+              </div>
+              <div class="grp">
+                <div class="gt">Resultado del punto</div>
+                <div class="keys">
+                  <button class="key win full"><kbd>↵</kbd>Punto ganado <span class="n">1</span></button>
+                  <button class="key lose full"><kbd>⌫</kbd>Punto perdido <span class="n">0</span></button>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="statusbar">
+          <span>OFFSET <b>+00:00:04.500</b></span>
+          <span>LAG <b>1.5 s</b></span>
+          <span>SET <b>2 / 3</b></span>
+          <span>EVENTOS <b>3</b></span>
+          <span style="margin-left:auto"><b>al día</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== REPORTE ===================== -->
+  <section class="screen" data-scr="report" hidden>
+    <div class="desk">
+      <aside class="rail">
+        <div class="who"><span class="av"></span><div><strong>Prof. Martín Aguilar</strong><span>Club Náutico Hacoaj</span></div></div>
+        <button class="on">Partidos <kbd>1</kbd></button>
+        <button>Alumnos <kbd>2</kbd></button>
+        <button class="out">Salir</button>
+      </aside>
+      <div class="deskmain">
+        <div class="dhead">
+          <div><h1>Reporte — Marina vs Pérez</h1><p class="lede">Interclubes APT · 1ra — polvo · 1 h 42 min · 214 eventos · 2 sets</p></div>
+          <div class="acts"><button class="btn">CSV</button><button class="btn pri">Exportar PDF <kbd>⌘E</kbd></button></div>
+        </div>
+
+        <div class="section-title">KPIs derivados</div>
+        <div class="tiles">
+          <div class="tile"><div class="lab">1er saque IN</div><div class="v">58<small>%</small></div><div class="spark"><i style="height:42%"></i><i style="height:55%"></i><i style="height:48%"></i><i style="height:70%"></i><i style="height:63%"></i></div></div>
+          <div class="tile"><div class="lab">Pts con 1er saque</div><div class="v">71<small>%</small></div><div class="spark"><i style="height:60%"></i><i style="height:64%"></i><i style="height:58%"></i><i style="height:66%"></i><i style="height:73%"></i></div></div>
+          <div class="tile"><div class="lab">Winner / no forzado</div><div class="v">14<small>/22</small></div><div class="spark"><i style="height:70%"></i><i style="height:52%"></i><i style="height:46%"></i><i style="height:41%"></i><i style="height:37%"></i></div></div>
+          <div class="tile"><div class="lab">Dobles faltas</div><div class="v">3</div><div class="spark"><i style="height:20%"></i><i style="height:16%"></i><i style="height:24%"></i><i style="height:40%"></i><i style="height:46%"></i></div></div>
+        </div>
+
+        <div class="section-title">Desglose por categoría</div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>KPI</th><th>Set 1</th><th>Set 2</th><th>Total</th><th>% de puntos</th></tr></thead>
+            <tbody>
+              <tr><td class="strong">1er saque IN</td><td class="m">24</td><td class="m">19</td><td class="m"><span class="b" style="width:56px"></span>43</td><td class="m">58%</td></tr>
+              <tr><td class="strong">1er saque OUT</td><td class="m">16</td><td class="m">15</td><td class="m"><span class="b" style="width:40px"></span>31</td><td class="m">42%</td></tr>
+              <tr><td class="strong">Ace</td><td class="m">4</td><td class="m">2</td><td class="m"><span class="b" style="width:10px"></span>6</td><td class="m">8%</td></tr>
+              <tr><td class="strong">Doble falta</td><td class="m">1</td><td class="m">2</td><td class="m"><span class="b" style="width:6px"></span>3</td><td class="m">4%</td></tr>
+              <tr><td class="strong">Winner</td><td class="m">9</td><td class="m">5</td><td class="m"><span class="b" style="width:20px"></span>14</td><td class="m">—</td></tr>
+              <tr><td class="strong">Error no forzado</td><td class="m">10</td><td class="m">12</td><td class="m"><span class="b" style="width:32px"></span>22</td><td class="m">—</td></tr>
+              <tr><td class="strong">Rally 9+ golpes</td><td class="m">6</td><td class="m">8</td><td class="m"><span class="b" style="width:20px"></span>14</td><td class="m">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== NUEVO ===================== -->
+  <section class="screen" data-scr="new" hidden>
+    <div class="desk">
+      <aside class="rail">
+        <div class="who"><span class="av"></span><div><strong>Prof. Martín Aguilar</strong><span>Club Náutico Hacoaj</span></div></div>
+        <button class="on">Partidos <kbd>1</kbd></button>
+        <button>Alumnos <kbd>2</kbd></button>
+        <button class="out">Salir</button>
+      </aside>
+      <div class="deskmain">
+        <div class="dhead"><div><h1>Nuevo partido</h1><p class="lede">Un partido siempre es de un alumno.</p></div></div>
+        <div class="cols">
+          <div class="box">
+            <h3>Alumno</h3>
+            <div class="opts">
+              <button class="on">Álvaro Marina</button><button>Sofía Ledesma</button>
+              <button>Tomás Vera</button><button>Nicolás Ferro</button>
+            </div>
+          </div>
+          <div class="box">
+            <h3>El partido</h3>
+            <label class="f"><span class="lab">Rival (opcional)</span><input value="Javier Pérez"></label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <label class="f" style="margin:0"><span class="lab">Superficie</span><select><option>Polvo</option><option>Cemento</option><option>Césped</option></select></label>
+              <label class="f" style="margin:0"><span class="lab">Formato</span><select><option>A 3 sets</option><option>2 sets + super TB</option></select></label>
+            </div>
+          </div>
+          <div class="box full">
+            <h3>El video</h3>
+            <p class="privacy" style="margin-bottom:12px">El archivo se queda en tu máquina. Lo único que se guarda en el servidor es en qué momento del video pasó cada cosa (<span class="m">video_offset_ms</span>).</p>
+            <div style="display:flex;align-items:center;gap:12px">
+              <button class="btn">Elegir el video</button>
+              <span class="m" style="font-size:11px;color:var(--text-faint)">D:\Partidos\marina-perez-09-09.mp4 · 3.8 GB · 1:00:01</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn pri" style="margin-top:16px;align-self:flex-start">Crear el partido <kbd>⌘↵</kbd></button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  const btns=document.querySelectorAll('.switch button');
+  const scrs=document.querySelectorAll('.screen');
+  btns.forEach(b=>b.addEventListener('click',()=>{
+    btns.forEach(x=>x.classList.toggle('on',x===b));
+    scrs.forEach(s=>s.hidden=s.dataset.scr!==b.dataset.scr);
+    window.scrollTo(0,0);
+  }));
+</script>
+</body>
+</html>

@@ -1,18 +1,26 @@
 :root {
-  --background: #0f1418;
-  --surface: #1a2129;
-  --surface-raised: #232c36;
-  --border: #2e3944;
+  /* Dirección D — "Estudio": slate profundo, un solo índigo eléctrico. */
+  --background: #0c0d11;
+  --surface: #131519;
+  --surface-2: #181b21;
+  --surface-raised: #1d2027;
+  --border: #262a33;
+  --border-soft: #20242c;
 
-  --text: #f2f5f7;
-  --text-muted: #9aa7b4;
+  --text: #d4d8e0;
+  --text-strong: #f4f6fa;
+  --text-muted: #8b93a1;
+  --text-faint: #5c636f;
 
-  --primary: #c8ff4d;
-  --primary-text: #0f1418;
+  --primary: #6366f1;
+  --primary-bright: #818cf8;
+  --primary-tint: rgba(99, 102, 241, 0.14);
+  --primary-text: #ffffff;
+  --accent-cyan: #22d3ee;
 
-  --danger: #ff5c5c;
-  --warning: #ffb020;
-  --success: #3dd68c;
+  --danger: #f2555a;
+  --warning: #fbbf24;
+  --success: #34d399;
 
   --space-xs: 4px;
   --space-sm: 8px;
@@ -24,6 +32,11 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-pill: 999px;
+
+  --font-sans:
+    'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:
+    'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Consolas', monospace;
 
   color-scheme: dark;
 }
@@ -42,12 +55,22 @@ body,
 body {
   background: var(--background);
   color: var(--text);
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    sans-serif;
-  font-size: 15px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(
+    780px 360px at 82% -8%,
+    rgba(99, 102, 241, 0.1),
+    transparent
+  );
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--text-strong);
+  letter-spacing: -0.02em;
 }
 
 button {
@@ -55,8 +78,20 @@ button {
   cursor: pointer;
 }
 
-input {
+input,
+select {
   font: inherit;
+}
+
+kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 1px 5px;
+  color: var(--text-muted);
 }
 
 ::selection {

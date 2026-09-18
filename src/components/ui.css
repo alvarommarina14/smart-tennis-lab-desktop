@@ -1,24 +1,40 @@
 .stl-button {
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  padding: 10px 18px;
-  font-weight: 700;
-  min-height: 40px;
-  transition: opacity 0.12s ease;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-weight: 600;
+  font-size: 12.5px;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  background: var(--surface-raised);
+  color: var(--text);
+  transition:
+    border-color 0.12s ease,
+    background 0.12s ease;
 }
 
 .stl-button:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: default;
 }
 
-.stl-button:not(:disabled):hover {
-  opacity: 0.85;
+.stl-button--secondary:not(:disabled):hover,
+.stl-button--danger:not(:disabled):hover {
+  border-color: var(--text-faint);
 }
 
 .stl-button--primary {
   background: var(--primary);
+  border-color: var(--primary);
   color: var(--primary-text);
+}
+
+.stl-button--primary:not(:disabled):hover {
+  background: var(--primary-bright);
+  border-color: var(--primary-bright);
 }
 
 .stl-button--secondary {
@@ -33,6 +49,11 @@
   color: var(--danger);
 }
 
+.stl-button:focus-visible {
+  outline: 2px solid var(--primary-bright);
+  outline-offset: 2px;
+}
+
 .stl-field {
   display: flex;
   flex-direction: column;
@@ -40,8 +61,11 @@
 }
 
 .stl-field__label {
-  color: var(--text-muted);
-  font-size: 13px;
+  color: var(--text-faint);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .stl-field__error {
@@ -52,14 +76,19 @@
 .stl-input {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   color: var(--text);
-  padding: 10px 14px;
-  min-height: 40px;
+  padding: 9px 12px;
+  min-height: 38px;
 }
 
 .stl-input:focus {
-  outline: 2px solid var(--primary);
+  outline: none;
+  border-color: var(--primary);
+}
+
+.stl-input:focus-visible {
+  outline: 2px solid var(--primary-bright);
   outline-offset: 1px;
 }
 
@@ -84,10 +113,19 @@
 }
 
 .stl-card {
-  background: var(--surface);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: var(--space-xl);
+  padding: var(--space-lg);
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
+}
+
+.stl-card > strong {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
 }

@@ -13,8 +13,11 @@ export function Layout() {
     <div className="layout">
       <aside className="layout__sidebar">
         <div className="layout__brand">
-          <strong>Smart Tennis Lab</strong>
-          <span>{coach?.fullName}</span>
+          <span className="layout__mark" aria-hidden="true" />
+          <div>
+            <strong>Smart Tennis Lab</strong>
+            <span>{coach?.fullName}</span>
+          </div>
         </div>
 
         <nav className="layout__nav">

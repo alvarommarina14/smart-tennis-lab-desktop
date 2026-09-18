@@ -1,4 +1,6 @@
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from 'react';
+import { useState, type ButtonHTMLAttributes, type ChangeEvent, type InputHTMLAttributes, type ReactNode } from 'react';
+
+import { dmyToIso, isPastIso, isoToDmy, maskDate } from '@/lib/dateInput';
 
 import './ui.css';
 
@@ -26,6 +28,62 @@ export function Field({ label, error, ...rest }: FieldProps) {
       <span className="stl-field__label">{label}</span>
       <input className={`stl-input${error ? ' stl-input--error' : ''}`} {...rest} />
       {error ? <span className="stl-field__error">{error}</span> : null}
+    </label>
+  );
+}
+
+type DateFieldProps = {
+  label: string;
+  value: string;
+  onChange: (iso: string) => void;
+  error?: string;
+};
+
+export function DateField({ label, value, onChange, error }: DateFieldProps) {
+  const [text, setText] = useState(() => isoToDmy(value));
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  function handleChange(event: ChangeEvent<HTMLInputElement>) {
+    const masked = maskDate(event.target.value);
+    setText(masked);
+
+    if (masked.length < 10) {
+      setLocalError(null);
+      onChange('');
+      return;
+    }
+
+    const iso = dmyToIso(masked);
+    if (!iso) {
+      setLocalError('Fecha inválida');
+      onChange('');
+      return;
+    }
+    if (!isPastIso(iso)) {
+      setLocalError('La fecha de nacimiento tiene que ser pasada');
+      onChange('');
+      return;
+    }
+
+    setLocalError(null);
+    onChange(iso);
+  }
+
+  const shown = localError ?? error;
+
+  return (
+    <label className="stl-field">
+      <span className="stl-field__label">{label}</span>
+      <input
+        className={`stl-input${shown ? ' stl-input--error' : ''}`}
+        inputMode="numeric"
+        autoComplete="off"
+        placeholder="dd/mm/aaaa"
+        maxLength={10}
+        value={text}
+        onChange={handleChange}
+      />
+      {shown ? <span className="stl-field__error">{shown}</span> : null}
     </label>
   );
 }

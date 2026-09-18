@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Tennis Lab — Dirección A · Transmisión</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* ================================================================
+     DIRECCIÓN A — "TRANSMISIÓN"
+     El lenguaje del gráfico de TV: el zócalo del marcador, la tiza de
+     las líneas, el polvo de ladrillo. Navy de cancha nocturna, un solo
+     naranja arcilla, tipografía condensada de broadcast y mono para los
+     timecodes. El profe mira el partido como lo miraría un comentarista.
+     ================================================================ */
+  :root{
+    --bg:#0a141e; --panel:#0f2030; --panel-2:#152a3c; --raised:#1b3145;
+    --line:#25394b; --line-soft:#1e3040;
+    --ink:#f3eee2; --ink-soft:#9fb3c1; --ink-faint:#5f7385;
+    --clay:#dd6b3d; --clay-bright:#f0824f; --clay-tint:rgba(221,107,61,.16);
+    --in:#3aa66a; --amber:#e8b13c; --fault:#e5544e;
+    --radius:10px; --radius-sm:6px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:'Archivo',system-ui,sans-serif;
+    font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:70px;
+    background-image:radial-gradient(900px 380px at 88% -8%,rgba(221,107,61,.10),transparent)}
+  h1,h2,h3{font-family:'Archivo Narrow','Archivo',sans-serif;font-weight:700;line-height:1.08;
+    letter-spacing:.005em;text-transform:uppercase}
+  .mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+  button{font-family:inherit;cursor:pointer;color:inherit}
+  kbd{font-family:'IBM Plex Mono',monospace;font-size:11px;background:var(--raised);border:1px solid var(--line);
+    border-bottom-width:2px;border-radius:4px;padding:1px 5px;color:var(--ink-soft)}
+
+  /* ---------- shell ---------- */
+  .top{position:sticky;top:0;z-index:40;background:rgba(10,20,30,.82);backdrop-filter:blur(9px);
+    border-bottom:1px solid var(--line)}
+  .top-in{max-width:1240px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .brand .mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(150deg,var(--clay),#b74e26);
+    position:relative;flex:none}
+  .brand .mark::after{content:'';position:absolute;inset:7px 12px;background:var(--ink);border-radius:1px}
+  .brand strong{font-family:'Archivo Narrow';font-weight:700;text-transform:uppercase;letter-spacing:.03em;font-size:15px}
+  .brand span{font-size:12px;color:var(--ink-faint)}
+  .switch{display:flex;gap:2px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:3px}
+  .switch button{border:0;background:transparent;color:var(--ink-soft);font-size:12px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.04em;padding:8px 14px;border-radius:6px;transition:.13s}
+  .switch button.on{background:var(--clay);color:#fff}
+  .dirnote{max-width:1240px;margin:0 auto;padding:11px 24px;font-size:12px;color:var(--ink-faint);line-height:1.6}
+  .dirnote b{color:var(--clay-bright);font-weight:600}
+
+  main{max-width:1240px;margin:0 auto;padding:26px 24px}
+  .screen[hidden]{display:none}
+
+  /* ---------- app frame (sidebar + content) ---------- */
+  .app{display:grid;grid-template-columns:216px 1fr;border:1px solid var(--line);border-radius:var(--radius);
+    overflow:hidden;background:var(--panel);min-height:660px}
+  .side{background:var(--panel-2);border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:4px}
+  .side .who{padding:4px 10px 16px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+  .side .who strong{display:block;font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.03em;font-size:14px}
+  .side .who span{font-size:11px;color:var(--ink-faint)}
+  .side a{text-decoration:none;color:var(--ink-soft);font-weight:600;font-size:13px;padding:10px 11px;border-radius:7px;
+    display:flex;justify-content:space-between;align-items:center}
+  .side a:hover{background:var(--raised)}
+  .side a.on{background:var(--raised);color:var(--ink);box-shadow:inset 2px 0 0 var(--clay)}
+  .side .out{margin-top:auto;color:var(--ink-faint);font-size:12px;text-transform:uppercase;letter-spacing:.06em;
+    background:transparent;border:0;text-align:left;padding:10px 11px}
+  .content{padding:26px 30px;min-width:0}
+
+  .phead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px}
+  .phead h1{font-size:30px}
+  .phead p{color:var(--ink-soft);font-size:13px;margin-top:5px}
+  .cta{background:var(--clay);color:#fff;border:0;border-radius:8px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.04em;font-size:12.5px;padding:11px 18px}
+  .cta:hover{background:var(--clay-bright)}
+  .cta.ghost{background:var(--raised);color:var(--ink);border:1px solid var(--line)}
+  .eyebrow{font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.11em;font-size:11px;
+    font-weight:700;color:var(--ink-faint)}
+
+  /* ---------- match list = scoreline rows ---------- */
+  .fixture{width:100%;text-align:left;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius);
+    padding:0;display:grid;grid-template-columns:1fr auto;overflow:hidden;margin-bottom:10px}
+  .fixture:hover{border-color:var(--clay)}
+  .fixture .info{padding:15px 18px}
+  .fixture .vs{font-family:'Archivo Narrow';text-transform:uppercase;font-weight:700;font-size:17px;letter-spacing:.01em}
+  .fixture .vs em{color:var(--ink-faint);font-style:normal;margin:0 8px;font-weight:600}
+  .fixture .meta{color:var(--ink-soft);font-size:12px;margin-top:4px}
+  .fixture .board{display:flex;align-items:stretch;border-left:1px solid var(--line)}
+  .fixture .board .sc{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:0 15px;border-right:1px solid var(--line-soft);min-width:46px}
+  .fixture .board .sc b{font-family:'IBM Plex Mono';font-size:18px;font-weight:600;line-height:1}
+  .fixture .board .sc span{font-size:9.5px;color:var(--ink-faint);text-transform:uppercase;margin-top:3px}
+  .state{align-self:center;margin:0 16px;font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.05em;
+    font-size:11px;font-weight:700;padding:4px 10px;border-radius:5px;background:var(--raised);color:var(--ink-soft);white-space:nowrap}
+  .state.live{background:var(--clay-tint);color:var(--clay-bright)}
+  .state.done{background:rgba(58,166,106,.16);color:var(--in)}
+
+  /* ---------- broadcast scoreboard ---------- */
+  .stage{position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);
+    background:linear-gradient(145deg,#12222f,#0b1520)}
+  .stage .frame{aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
+    background:repeating-linear-gradient(115deg,#132433 0 22px,#102030 22px 44px)}
+  .stage .frame .play{width:60px;height:60px;border-radius:50%;background:var(--clay);display:flex;align-items:center;
+    justify-content:center;box-shadow:0 0 34px rgba(221,107,61,.5)}
+  .stage .frame .play::after{content:'';border-left:17px solid #fff;border-top:11px solid transparent;border-bottom:11px solid transparent;margin-left:5px}
+  .bug{position:absolute;left:16px;bottom:16px;right:16px;display:flex;background:rgba(8,16,24,.9);
+    border:1px solid var(--line);border-radius:8px;overflow:hidden;backdrop-filter:blur(4px)}
+  .bug .team{flex:1;display:flex;align-items:center;gap:11px;padding:11px 15px}
+  .bug .team + .team{border-left:1px solid var(--line)}
+  .bug .serve{width:8px;height:8px;border-radius:50%;background:var(--ink-faint);flex:none}
+  .bug .team.srv .serve{background:var(--clay);box-shadow:0 0 9px var(--clay)}
+  .bug .name{font-family:'Archivo Narrow';text-transform:uppercase;font-weight:700;letter-spacing:.02em;font-size:15px;flex:1}
+  .bug .sets{display:flex;gap:9px;font-family:'IBM Plex Mono';font-weight:600;color:var(--ink-soft);font-size:14px}
+  .bug .pts{font-family:'IBM Plex Mono';font-weight:600;font-size:17px;color:var(--ink);min-width:30px;text-align:center;
+    background:var(--clay);color:#fff;border-radius:5px;padding:2px 0}
+  .bug .setno{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 16px;
+    background:var(--panel-2);border-left:1px solid var(--line);border-right:1px solid var(--line)}
+  .bug .setno b{font-family:'Archivo Narrow';text-transform:uppercase;font-size:12px;letter-spacing:.04em}
+  .bug .setno span{font-size:9px;color:var(--ink-faint);text-transform:uppercase}
+
+  .analysis-grid{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start;margin-top:16px}
+  .transport{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .tbtn{background:var(--raised);border:1px solid var(--line);border-radius:var(--radius-sm);padding:7px 11px;
+    font-family:'IBM Plex Mono';font-size:12px;color:var(--ink-soft)}
+  .tbtn.main{background:var(--clay);border-color:var(--clay);color:#fff;min-width:44px}
+  .scrub{flex:1;min-width:120px;height:4px;border-radius:2px;background:var(--raised);position:relative}
+  .scrub::after{content:'';position:absolute;left:0;top:0;bottom:0;width:34%;background:var(--clay);border-radius:2px}
+  .tcode{font-family:'IBM Plex Mono';font-size:12px;color:var(--ink-faint)}
+
+  .deck{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius);padding:15px}
+  .deck > .eyebrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .phase{margin-bottom:14px}
+  .phase-t{font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.06em;font-size:11px;font-weight:700;
+    color:var(--ink-faint);margin-bottom:7px}
+  .tags{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .tag{display:flex;align-items:center;justify-content:space-between;gap:6px;background:var(--raised);
+    border:1px solid var(--line);border-radius:7px;padding:9px 11px;font-size:12.5px;font-weight:600;text-align:left}
+  .tag:hover{border-color:var(--clay)}
+  .tag .n{font-family:'IBM Plex Mono';color:var(--ink-faint);font-weight:600}
+  .tag.off{opacity:.34;pointer-events:none}
+  .tag.won{border-color:rgba(58,166,106,.5)}.tag.won .n{color:var(--in)}
+  .tag.lost{border-color:rgba(229,84,78,.45)}.tag.lost .n{color:var(--fault)}
+  .tag.wide{grid-column:1/-1}
+
+  /* ---------- report ---------- */
+  .report-top{display:grid;grid-template-columns:1fr auto;gap:20px;border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;background:var(--panel-2);margin-bottom:18px}
+  .report-top h1{font-size:26px}
+  .report-top .sub{color:var(--ink-soft);font-size:13px;margin-top:6px}
+  .report-top .expo{display:flex;flex-direction:column;gap:8px}
+  .kpi-band{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+  .kpi{border:1px solid var(--line);border-radius:var(--radius);padding:15px;background:var(--panel-2)}
+  .kpi .lab{font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;color:var(--ink-faint)}
+  .kpi .val{font-family:'IBM Plex Mono';font-size:30px;font-weight:600;margin-top:8px;letter-spacing:-.01em}
+  .kpi .val small{font-size:14px;color:var(--ink-faint)}
+  .kpi .trend{font-size:11px;color:var(--in);margin-top:4px}
+  .catwrap{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{text-align:left;font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.06em;font-size:10.5px;
+    color:var(--ink-faint);padding:11px 16px;background:var(--panel-2);border-bottom:1px solid var(--line)}
+  thead th:last-child,tbody td:last-child{text-align:right}
+  tbody td{padding:12px 16px;border-bottom:1px solid var(--line-soft);color:var(--ink-soft)}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:var(--panel)}
+  td.k{color:var(--ink);font-weight:600}
+  td .bar{display:inline-block;height:6px;border-radius:3px;background:var(--clay);vertical-align:middle;margin-right:9px}
+
+  /* ---------- new match form ---------- */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .fcard{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+  .fcard.span{grid-column:1/-1}
+  .fcard h3{font-size:15px;margin-bottom:12px}
+  .pick{display:flex;flex-wrap:wrap;gap:7px}
+  .pick button{background:var(--raised);border:1px solid var(--line);border-radius:7px;padding:8px 13px;font-size:12.5px;font-weight:600}
+  .pick button.on{background:var(--clay);border-color:var(--clay);color:#fff}
+  .field{display:block;margin-bottom:11px}
+  .field span{display:block;font-family:'Archivo Narrow';text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;
+    color:var(--ink-faint);margin-bottom:5px}
+  .field input,.field select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:7px;
+    padding:10px 12px;color:var(--ink);font:inherit}
+  .note{border-left:2px solid var(--clay);padding-left:12px;color:var(--ink-soft);font-size:12.5px;line-height:1.6}
+
+  @media(max-width:1080px){
+    .app{grid-template-columns:1fr}.side{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}
+    .side .who,.side .out{display:none}
+    .analysis-grid,.form-grid,.kpi-band{grid-template-columns:1fr}
+    .switch{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="top-in">
+    <div class="brand"><span class="mark"></span><strong>Smart Tennis Lab</strong><span>/ Escritorio</span></div>
+    <nav class="switch">
+      <button class="on" data-scr="matches">Partidos</button>
+      <button data-scr="analysis">Análisis</button>
+      <button data-scr="report">Reporte</button>
+      <button data-scr="new">Nuevo</button>
+    </nav>
+  </div>
+</div>
+<p class="dirnote">
+  <b>Dirección A · Transmisión</b> — el gráfico de televisión llevado a la herramienta. Navy de
+  cancha nocturna, un naranja polvo de ladrillo, condensada de zócalo y mono para los timecodes.
+  El marcador vive como el <i>bug</i> del broadcast, encima del video; el panel de tagging es la
+  consola del control room.
+</p>
+
+<main>
+
+  <!-- ===================== PARTIDOS ===================== -->
+  <section class="screen" data-scr="matches">
+    <div class="app">
+      <aside class="side">
+        <div class="who"><strong>Prof. Martín Aguilar</strong><span>Club Náutico Hacoaj</span></div>
+        <a href="#" class="on">Partidos <span class="mono">12</span></a>
+        <a href="#">Alumnos <span class="mono">9</span></a>
+        <button class="out">Salir</button>
+      </aside>
+      <div class="content">
+        <div class="phead">
+          <div><h1>Partidos</h1><p>El video queda en esta máquina. Al servidor solo viajan los KPIs y el minuto de cada uno.</p></div>
+          <button class="cta">Analizar un partido</button>
+        </div>
+
+        <button class="fixture">
+          <div class="info">
+            <div class="vs">Álvaro Marina <em>vs</em> Javier Pérez</div>
+            <div class="meta">Interclubes APT · 1ra — Polvo · 09/09 20:30</div>
+          </div>
+          <div style="display:flex"><span class="state live">● En curso</span>
+            <div class="board"><div class="sc"><b>4</b><span>set 2</span></div><div class="sc"><b>40</b><span>juego</span></div></div>
+          </div>
+        </button>
+
+        <button class="fixture">
+          <div class="info">
+            <div class="vs">Sofía Ledesma <em>vs</em> M. Roggero</div>
+            <div class="meta">Torneo Menores G3 — Cemento · 06/09 10:00</div>
+          </div>
+          <div style="display:flex"><span class="state done">Terminado</span>
+            <div class="board"><div class="sc"><b>6</b><span>set 1</span></div><div class="sc"><b>6</b><span>set 2</span></div></div>
+          </div>
+        </button>
+
+        <button class="fixture">
+          <div class="info">
+            <div class="vs">Tomás Vera <em>vs</em> I. Funes</div>
+            <div class="meta">Amistoso — Polvo · 01/09 18:15</div>
+          </div>
+          <div style="display:flex"><span class="state done">Terminado</span>
+            <div class="board"><div class="sc"><b>4</b><span>set 1</span></div><div class="sc"><b>6</b><span>set 2</span></div><div class="sc"><b>10</b><span>super tb</span></div></div>
+          </div>
+        </button>
+
+        <div style="margin-top:18px" class="eyebrow">Borradores sin sincronizar · 1</div>
+        <button class="fixture" style="margin-top:8px">
+          <div class="info">
+            <div class="vs">Nicolás Ferro <em>vs</em> —</div>
+            <div class="meta">231 eventos cargados · 12 sin subir</div>
+          </div>
+          <span class="state" style="margin:auto 16px">Reanudar</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ANÁLISIS ===================== -->
+  <section class="screen" data-scr="analysis" hidden>
+    <div class="app">
+      <aside class="side">
+        <div class="who"><strong>Prof. Martín Aguilar</strong><span>Club Náutico Hacoaj</span></div>
+        <a href="#" class="on">Partidos</a>
+        <a href="#">Alumnos</a>
+        <button class="out">Salir</button>
+      </aside>
+      <div class="content">
+        <div class="phead">
+          <div><h1>Álvaro Marina</h1><p>vs Javier Pérez · 3 eventos · al día</p></div>
+          <div style="display:flex;gap:8px">
+            <button class="cta ghost">Eventos · 3</button>
+            <button class="cta ghost">Sincronizar</button>
+          </div>
+        </div>
+
+        <div class="analysis-grid">
+          <div>
+            <div class="stage">
+              <div class="frame"><div class="play"></div></div>
+              <div class="bug">
+                <div class="team srv"><span class="serve"></span><span class="name">Marina</span><span class="sets mono">6 4</span><span class="pts">40</span></div>
+                <div class="setno"><b>Set 2</b><span>juegos</span></div>
+                <div class="team"><span class="serve"></span><span class="name">Pérez</span><span class="sets mono">4 3</span><span class="pts">30</span></div>
+              </div>
+            </div>
+            <div class="transport">
+              <button class="tbtn">«10s</button><button class="tbtn">«3s</button>
+              <button class="tbtn main">❚❚</button>
+              <button class="tbtn">3s»</button><button class="tbtn">10s»</button>
+              <span class="scrub"></span>
+              <span class="tcode">20:14 / 1:00:01</span>
+              <button class="tbtn">1×</button>
+            </div>
+            <div style="margin-top:12px" class="note">
+              Marcá dónde arranca el partido y tocá los contadores. <kbd>Espacio</kbd> reproduce y
+              pausa · <kbd>←</kbd> <kbd>→</kbd> mueven 3 segundos.
+            </div>
+          </div>
+
+          <aside class="deck">
+            <div class="eyebrow">Tagging <button class="tbtn" style="text-transform:none">↶ deshacer</button></div>
+
+            <div class="phase">
+              <div class="phase-t">Saque</div>
+              <div class="tags">
+                <button class="tag">1er saque IN <span class="n">1</span></button>
+                <button class="tag off">1er saque OUT <span class="n">0</span></button>
+                <button class="tag off">2do saque IN <span class="n">0</span></button>
+                <button class="tag">Ace <span class="n">0</span></button>
+                <button class="tag off">Doble falta <span class="n">0</span></button>
+                <button class="tag off">Error saque OUT <span class="n">0</span></button>
+              </div>
+            </div>
+            <div class="phase">
+              <div class="phase-t">Devolución</div>
+              <div class="tags">
+                <button class="tag">Devolución en juego <span class="n">1</span></button>
+                <button class="tag off">Error devol. OUT <span class="n">0</span></button>
+                <button class="tag off">Error devol. NET <span class="n">0</span></button>
+                <button class="tag">Ganado dev. 1er <span class="n">0</span></button>
+              </div>
+            </div>
+            <div class="phase">
+              <div class="phase-t">Definición · Rally</div>
+              <div class="tags">
+                <button class="tag">Winner <span class="n">1</span></button>
+                <button class="tag">Error no forzado <span class="n">0</span></button>
+                <button class="tag">Rally 1–4 <span class="n">1</span></button>
+                <button class="tag">Rally 5–8 <span class="n">0</span></button>
+              </div>
+            </div>
+            <div class="phase" style="margin-bottom:0">
+              <div class="phase-t">Resultado</div>
+              <div class="tags">
+                <button class="tag won wide">Punto ganado <span class="n">1</span></button>
+                <button class="tag lost wide">Punto perdido <span class="n">0</span></button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== REPORTE ===================== -->
+  <section class="screen" data-scr="report" hidden>
+    <div class="app">
+      <aside class="side">
+        <div class="who"><strong>Prof. Martín Aguilar</strong><span>Club Náutico Hacoaj</span></div>
+        <a href="#" class="on">Partidos</a>
+        <a href="#">Alumnos</a>
+        <button class="out">Salir</button>
+      </aside>
+      <div class="content">
+        <div class="report-top">
+          <div>
+            <div class="eyebrow">Reporte del partido</div>
+            <h1 style="margin-top:6px">Álvaro Marina vs Javier Pérez</h1>
+            <div class="sub">Interclubes APT · 1ra — Polvo · 09/09/2025 · 1 h 42 min · 214 eventos</div>
+          </div>
+          <div class="expo">
+            <button class="cta">Exportar PDF</button>
+            <button class="cta ghost">Exportar CSV</button>
+          </div>
+        </div>
+
+        <div class="kpi-band">
+          <div class="kpi"><div class="lab">1er saque · efectividad</div><div class="val">58<small>%</small></div><div class="trend">▲ 6 pts vs. últimos 3</div></div>
+          <div class="kpi"><div class="lab">Puntos ganados con 1er saque</div><div class="val">71<small>%</small></div><div class="trend">▲ sólido</div></div>
+          <div class="kpi"><div class="lab">Winners / Errores no forzados</div><div class="val">14<small> / 22</small></div><div class="trend" style="color:var(--fault)">▼ ratio 0.64</div></div>
+          <div class="kpi"><div class="lab">Dobles faltas</div><div class="val">3</div><div class="trend" style="color:var(--amber)">2 en el 2º set</div></div>
+        </div>
+
+        <div class="eyebrow" style="margin-bottom:10px">Desglose por categoría</div>
+        <div class="catwrap">
+          <table>
+            <thead><tr><th>KPI</th><th>Set 1</th><th>Set 2</th><th>Total</th></tr></thead>
+            <tbody>
+              <tr><td class="k">1er saque IN</td><td>24</td><td>19</td><td><span class="bar" style="width:64px"></span>43</td></tr>
+              <tr><td class="k">1er saque OUT</td><td>16</td><td>15</td><td><span class="bar" style="width:46px"></span>31</td></tr>
+              <tr><td class="k">Ace</td><td>4</td><td>2</td><td><span class="bar" style="width:12px"></span>6</td></tr>
+              <tr><td class="k">Doble falta</td><td>1</td><td>2</td><td><span class="bar" style="width:8px"></span>3</td></tr>
+              <tr><td class="k">Winner</td><td>9</td><td>5</td><td><span class="bar" style="width:24px"></span>14</td></tr>
+              <tr><td class="k">Error no forzado</td><td>10</td><td>12</td><td><span class="bar" style="width:38px"></span>22</td></tr>
+              <tr><td class="k">Rally 9+ golpes</td><td>6</td><td>8</td><td><span class="bar" style="width:22px"></span>14</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== NUEVO ===================== -->
+  <section class="screen" data-scr="new" hidden>
+    <div class="app">
+      <aside class="side">
+        <div class="who"><strong>Prof. Martín Aguilar</strong><span>Club Náutico Hacoaj</span></div>
+        <a href="#" class="on">Partidos</a>
+        <a href="#">Alumnos</a>
+        <button class="out">Salir</button>
+      </aside>
+      <div class="content">
+        <div class="phead"><div><h1>Analizar un partido</h1><p>Un partido siempre es de un alumno.</p></div></div>
+        <div class="form-grid">
+          <div class="fcard">
+            <h3>Alumno</h3>
+            <div class="pick">
+              <button class="on">Álvaro Marina</button><button>Sofía Ledesma</button>
+              <button>Tomás Vera</button><button>Nicolás Ferro</button>
+            </div>
+          </div>
+          <div class="fcard">
+            <h3>El partido</h3>
+            <label class="field"><span>Rival (opcional)</span><input value="Javier Pérez"></label>
+            <label class="field"><span>Torneo (opcional)</span><input value="Interclubes APT — 1ra"></label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+              <label class="field" style="margin:0"><span>Superficie</span><select><option>Polvo</option><option>Cemento</option><option>Césped</option></select></label>
+              <label class="field" style="margin:0"><span>Formato</span><select><option>A 3 sets</option><option>2 sets y super TB</option></select></label>
+            </div>
+          </div>
+          <div class="fcard span">
+            <h3>El video</h3>
+            <p class="note" style="margin-bottom:12px">El archivo se queda en tu máquina. Lo único que se guarda en el servidor es en qué momento del video pasó cada cosa.</p>
+            <div style="display:flex;align-items:center;gap:12px">
+              <button class="cta ghost">Cambiar el video</button>
+              <span class="mono" style="color:var(--ink-faint);font-size:12px">D:\Partidos\marina-perez-09-09.mp4 · 3.8 GB</span>
+            </div>
+          </div>
+        </div>
+        <button class="cta" style="margin-top:18px">Crear el partido</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  const btns=document.querySelectorAll('.switch button');
+  const scrs=document.querySelectorAll('.screen');
+  btns.forEach(b=>b.addEventListener('click',()=>{
+    btns.forEach(x=>x.classList.toggle('on',x===b));
+    scrs.forEach(s=>s.hidden=s.dataset.scr!==b.dataset.scr);
+    window.scrollTo(0,0);
+  }));
+</script>
+</body>
+</html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Tennis Lab — Dirección B · Cuaderno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ================================================================
+     DIRECCIÓN B — "CUADERNO"
+     La herramienta como el cuaderno del profe y el informe impreso que
+     le queda al alumno. Papel frío, tinta, una lapicera azul y nada más.
+     Serif Spectral de punta a punta, mono para timecodes y datos, filetes
+     finos, márgenes anchos. El video es una foto pegada; el tagging son
+     marcas al margen.
+     ================================================================ */
+  :root{
+    --paper:#f4f5f2; --paper-2:#eceee8; --card:#fbfbf9;
+    --ink:#1b201d; --ink-soft:#575e58; --ink-faint:#8a908a;
+    --rule:#d8dbd3; --rule-soft:#e6e8e1;
+    --pen:#274690; --pen-soft:#e6ebf5;
+    --red:#a93b34; --green:#3a7550; --amber:#9a6a1e;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--paper);color:var(--ink);
+    font-family:'Spectral',Georgia,'Times New Roman',serif;font-size:15px;line-height:1.62;
+    -webkit-font-smoothing:antialiased;padding-bottom:80px}
+  h1,h2,h3{font-weight:600;line-height:1.2;letter-spacing:-.005em;text-wrap:balance}
+  .mono{font-family:'Spline Sans Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  .lbl{font-family:'Spline Sans Mono',monospace;text-transform:uppercase;letter-spacing:.14em;
+    font-size:10.5px;color:var(--ink-faint);font-weight:500}
+  button{font-family:inherit;cursor:pointer;color:inherit}
+  kbd{font-family:'Spline Sans Mono',monospace;font-size:11px;border:1px solid var(--rule);
+    border-bottom-width:2px;border-radius:3px;padding:0 5px;background:var(--card);color:var(--ink-soft)}
+
+  /* ---------- masthead ---------- */
+  .top{border-bottom:1px double var(--rule);background:var(--paper)}
+  .top-in{max-width:1120px;margin:0 auto;padding:16px 34px;display:flex;align-items:baseline;justify-content:space-between;gap:24px}
+  .brand{display:flex;align-items:baseline;gap:12px}
+  .brand strong{font-size:19px;font-weight:600;letter-spacing:-.01em}
+  .brand span{font-size:12px;color:var(--ink-faint);font-style:italic}
+  .switch{display:flex;gap:22px}
+  .switch button{border:0;background:transparent;font-size:14px;color:var(--ink-faint);padding:2px 0;
+    border-bottom:1.5px solid transparent}
+  .switch button:hover{color:var(--ink)}
+  .switch button.on{color:var(--ink);border-bottom-color:var(--pen)}
+  .dirnote{max-width:1120px;margin:0 auto;padding:12px 34px 0;font-size:12.5px;color:var(--ink-faint);
+    font-style:italic;line-height:1.6}
+  .dirnote b{color:var(--pen);font-style:normal;font-weight:600}
+
+  main{max-width:1120px;margin:0 auto;padding:30px 34px}
+  .screen[hidden]{display:none}
+
+  /* ---------- app frame ---------- */
+  .app{display:grid;grid-template-columns:180px 1fr;gap:34px}
+  .spine{border-right:1px solid var(--rule);padding-right:22px;display:flex;flex-direction:column;gap:3px}
+  .spine .who{padding-bottom:16px;margin-bottom:10px;border-bottom:1px solid var(--rule)}
+  .spine .who strong{display:block;font-size:15px;font-weight:600}
+  .spine .who span{font-size:11.5px;color:var(--ink-faint);font-style:italic}
+  .spine a{text-decoration:none;color:var(--ink-soft);font-size:14px;padding:6px 0;display:flex;justify-content:space-between}
+  .spine a:hover{color:var(--ink)}
+  .spine a.on{color:var(--pen);font-weight:600}
+  .spine .out{margin-top:auto;padding-top:16px;font-size:12px;color:var(--ink-faint);background:0;border:0;text-align:left}
+  .page{min-width:0}
+
+  .ttl{border-bottom:1px solid var(--ink);padding-bottom:12px;margin-bottom:8px;display:flex;
+    align-items:flex-end;justify-content:space-between;gap:20px}
+  .ttl h1{font-size:30px}
+  .ttl .kicker{font-size:12.5px;color:var(--ink-soft);font-style:italic;margin-top:4px}
+  .lede{color:var(--ink-soft);font-size:14px;margin:14px 0 26px;max-width:62ch}
+  .btn{background:var(--pen);color:#fff;border:0;border-radius:2px;font-family:'Spline Sans Mono',monospace;
+    font-size:12px;text-transform:uppercase;letter-spacing:.08em;padding:10px 16px}
+  .btn:hover{background:#1d3670}
+  .btn.ghost{background:transparent;color:var(--pen);box-shadow:inset 0 0 0 1px var(--pen)}
+
+  /* ---------- match list = index of a ledger ---------- */
+  .entry{display:grid;grid-template-columns:76px 1fr auto;gap:18px;align-items:baseline;
+    padding:16px 0;border-bottom:1px solid var(--rule-soft);text-align:left;background:0;border-left:0;border-right:0;border-top:0;width:100%}
+  .entry:hover .who-vs{text-decoration:underline;text-decoration-color:var(--pen);text-underline-offset:3px}
+  .entry .date{font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--ink-faint)}
+  .who-vs{font-size:17px;font-weight:500;display:block}
+  .who-vs em{font-style:italic;color:var(--ink-faint);margin:0 7px}
+  .entry .meta{display:block;font-size:12.5px;color:var(--ink-soft);font-style:italic;margin-top:3px}
+  .entry .res{font-family:'Spline Sans Mono',monospace;font-size:14px;text-align:right;white-space:nowrap}
+  .entry .res .tag{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-faint);margin-top:3px}
+  .res .tag.live{color:var(--red)}
+
+  /* ---------- analysis ---------- */
+  .an-grid{display:grid;grid-template-columns:1fr 280px;gap:30px;align-items:start;margin-top:20px}
+  .plate{background:var(--card);border:1px solid var(--rule);padding:10px 10px 0;box-shadow:2px 3px 0 var(--rule)}
+  .plate .img{aspect-ratio:16/9;background:
+    linear-gradient(135deg,#dfe2da,#c9cdc2);display:flex;align-items:center;justify-content:center}
+  .plate .img .play{width:54px;height:54px;border-radius:50%;background:rgba(27,32,29,.82);display:flex;align-items:center;justify-content:center}
+  .plate .img .play::after{content:'';border-left:15px solid var(--paper);border-top:10px solid transparent;border-bottom:10px solid transparent;margin-left:4px}
+  .plate .cap{font-size:11.5px;color:var(--ink-faint);font-style:italic;padding:8px 4px 10px;display:flex;justify-content:space-between}
+  .transport{display:flex;align-items:center;gap:10px;margin-top:14px;font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--ink-soft)}
+  .transport button{border:1px solid var(--rule);background:var(--card);border-radius:2px;padding:6px 9px;font:inherit}
+  .transport .main{background:var(--pen);color:#fff;border-color:var(--pen)}
+  .transport .line{flex:1;height:1px;background:var(--ink);position:relative}
+  .transport .line::after{content:'';position:absolute;left:34%;top:-4px;width:9px;height:9px;border-radius:50%;background:var(--pen)}
+
+  .scoreline{display:flex;align-items:baseline;gap:16px;margin-top:20px;padding:14px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+  .scoreline .nm{font-size:16px;font-weight:500;flex:1}
+  .scoreline .nm.srv::before{content:'●';color:var(--pen);font-size:10px;vertical-align:middle;margin-right:7px}
+  .scoreline .g{font-family:'Spline Sans Mono',monospace;font-size:20px;font-weight:600}
+  .scoreline .s{font-family:'Spline Sans Mono',monospace;font-size:13px;color:var(--ink-faint)}
+  .scoreline .mid{font-style:italic;color:var(--ink-faint);font-size:12.5px}
+
+  .margin h3{font-size:13px;font-family:'Spline Sans Mono',monospace;text-transform:uppercase;letter-spacing:.1em;
+    font-weight:500;color:var(--ink-faint);display:flex;justify-content:space-between;align-items:center}
+  .mgroup{margin-top:16px}
+  .mgroup > span{font-style:italic;font-size:13px;color:var(--ink-soft);display:block;margin-bottom:6px}
+  .mark{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dotted var(--rule);
+    width:100%;background:0;border-left:0;border-right:0;border-top:0;text-align:left;font-size:13.5px}
+  .mark .box{width:14px;height:14px;border:1px solid var(--ink-faint);flex:none}
+  .mark.done .box{background:var(--pen);border-color:var(--pen);position:relative}
+  .mark.done .box::after{content:'✓';position:absolute;inset:0;color:#fff;font-size:11px;text-align:center;line-height:12px}
+  .mark .n{margin-left:auto;font-family:'Spline Sans Mono',monospace;color:var(--ink-faint);font-size:12px}
+  .mark.off{opacity:.36;pointer-events:none}
+  .mark.off .box{border-style:dashed}
+  .mark.won{color:var(--green)}.mark.lost{color:var(--red)}
+  .hint{border-left:2px solid var(--pen);padding-left:12px;margin-top:18px;font-size:12.5px;color:var(--ink-soft);font-style:italic;line-height:1.6}
+
+  /* ---------- report = a printed document ---------- */
+  .doc{max-width:74ch}
+  .doc .docttl{font-size:26px;text-align:center}
+  .doc .docsub{text-align:center;font-style:italic;color:var(--ink-soft);font-size:13px;margin:6px 0 4px}
+  .doc .rule-c{width:60px;height:2px;background:var(--ink);margin:16px auto 26px}
+  .abstract{font-size:15px;line-height:1.7;border-left:2px solid var(--rule);padding-left:16px;color:var(--ink-soft)}
+  .figs{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin:26px 0}
+  .fig{background:var(--paper);padding:16px}
+  .fig .v{font-family:'Spline Sans Mono',monospace;font-size:26px;font-weight:600}
+  .fig .v small{font-size:13px;color:var(--ink-faint)}
+  .fig .c{font-size:12px;color:var(--ink-soft);font-style:italic;margin-top:3px}
+  .doc h2{font-size:15px;font-family:'Spline Sans Mono',monospace;text-transform:uppercase;letter-spacing:.1em;
+    font-weight:500;margin:28px 0 10px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  caption{text-align:left;font-style:italic;color:var(--ink-faint);font-size:12px;margin-bottom:6px}
+  th{text-align:left;font-family:'Spline Sans Mono',monospace;text-transform:uppercase;letter-spacing:.08em;
+    font-size:10px;color:var(--ink-faint);font-weight:500;padding:7px 10px;border-bottom:1px solid var(--ink)}
+  td{padding:9px 10px;border-bottom:1px solid var(--rule-soft)}
+  th:not(:first-child),td:not(:first-child){text-align:right;font-family:'Spline Sans Mono',monospace}
+  td:first-child{font-weight:500}
+  .exprow{display:flex;gap:10px;justify-content:center;margin-top:28px}
+
+  /* ---------- new match ---------- */
+  .fset{border:0;border-top:1px solid var(--rule);padding:20px 0}
+  .fset legend{font-family:'Spline Sans Mono',monospace;text-transform:uppercase;letter-spacing:.1em;
+    font-size:11px;color:var(--ink-faint);padding-right:12px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chips button{border:1px solid var(--rule);background:var(--card);border-radius:2px;padding:7px 13px;font-size:13.5px}
+  .chips button.on{border-color:var(--pen);color:var(--pen);box-shadow:inset 0 -2px 0 var(--pen)}
+  .frow{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
+  .frow label{display:block}
+  .frow .lbl{display:block;margin-bottom:5px}
+  .frow input,.frow select{width:100%;border:0;border-bottom:1px solid var(--ink);background:transparent;
+    padding:7px 2px;font:inherit;color:var(--ink)}
+  .frow input:focus,.frow select:focus{outline:0;border-bottom-color:var(--pen)}
+
+  @media(max-width:960px){
+    .app{grid-template-columns:1fr}.spine{flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--rule);padding:0 0 14px}
+    .spine .who,.spine .out{display:none}.spine a{margin-right:18px}
+    .an-grid,.figs,.frow{grid-template-columns:1fr}.switch{gap:14px;font-size:13px}
+  }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="top-in">
+    <div class="brand"><strong>Smart Tennis Lab</strong><span>cuaderno de análisis</span></div>
+    <nav class="switch">
+      <button class="on" data-scr="matches">Partidos</button>
+      <button data-scr="analysis">Análisis</button>
+      <button data-scr="report">Reporte</button>
+      <button data-scr="new">Nuevo</button>
+    </nav>
+  </div>
+</div>
+<p class="dirnote">
+  <b>Dirección B · Cuaderno</b> — la herramienta como el cuaderno del profe y el informe que le
+  queda al alumno. Papel frío, tinta, una lapicera azul y nada más. Serif de punta a punta, mono
+  para timecodes y datos, filetes finos. El video es una foto pegada; el panel de tagging son
+  marcas al margen.
+</p>
+
+<main>
+
+  <!-- ===================== PARTIDOS ===================== -->
+  <section class="screen" data-scr="matches">
+    <div class="app">
+      <aside class="spine">
+        <div class="who"><strong>Prof. Martín Aguilar</strong><span>Club Náutico Hacoaj</span></div>
+        <a href="#" class="on">Partidos</a>
+        <a href="#">Alumnos</a>
+        <button class="out">Salir</button>
+      </aside>
+      <div class="page">
+        <div class="ttl">
+          <div><h1>Partidos</h1><div class="kicker">doce en total · dos sin sincronizar</div></div>
+          <button class="btn">Analizar un partido</button>
+        </div>
+        <p class="lede">El video se queda en esta máquina. Al servidor solo viajan los KPIs y el minuto de cada uno dentro de la grabación.</p>
+
+        <button class="entry">
+          <span class="date">09 SEP<br>20:30</span>
+          <span><span class="who-vs">Álvaro Marina <em>vs</em> Javier Pérez</span><span class="meta">Interclubes APT · 1ra — polvo</span></span>
+          <span class="res">4 · 40<span class="tag live">en curso</span></span>
+        </button>
+        <button class="entry">
+          <span class="date">06 SEP<br>10:00</span>
+          <span><span class="who-vs">Sofía Ledesma <em>vs</em> M. Roggero</span><span class="meta">Torneo Menores G3 — cemento</span></span>
+          <span class="res">6–4 · 7–5<span class="tag">terminado</span></span>
+        </button>
+        <button class="entry">
+          <span class="date">01 SEP<br>18:15</span>
+          <span><span class="who-vs">Tomás Vera <em>vs</em> I. Funes</span><span class="meta">Amistoso — polvo</span></span>
+          <span class="res">4–6 · 6–3 · 10–7<span class="tag">terminado</span></span>
+        </button>
+        <button class="entry">
+          <span class="date">28 AGO<br>17:00</span>
+          <span><span class="who-vs">Nicolás Ferro <em>vs</em> —</span><span class="meta">231 eventos · 12 sin subir</span></span>
+          <span class="res">—<span class="tag">borrador</span></span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ANÁLISIS ===================== -->
+  <section class="screen" data-scr="analysis" hidden>
+    <div class="app">
+      <aside class="spine">
+        <div class="who"><strong>Prof. Martín Aguilar</strong><span>Club Náutico Hacoaj</span></div>
+        <a href="#" class="on">Partidos</a>
+        <a href="#">Alumnos</a>
+        <button class="out">Salir</button>
+      </aside>
+      <div class="page">
+        <div class="ttl">
+          <div><h1>Álvaro Marina</h1><div class="kicker">vs Javier Pérez · 3 eventos anotados · al día</div></div>
+          <div style="display:flex;gap:8px"><button class="btn ghost">Eventos · 3</button><button class="btn ghost">Sincronizar</button></div>
+        </div>
+
+        <div class="an-grid">
+          <div>
+            <div class="plate">
+              <div class="img"><div class="play"></div></div>
+              <div class="cap"><span>marina-perez-09-09.mp4</span><span class="mono">20:14 / 1:00:01</span></div>
+            </div>
+            <div class="transport">
+              <button>«10s</button><button>«3s</button><button class="main">❚❚</button><button>3s»</button><button>10s»</button>
+              <span class="line"></span><span>1×</span>
+            </div>
+
+            <div class="scoreline">
+              <span class="nm srv">Marina</span>
+              <span class="s">6 4</span><span class="g">40</span>
+              <span class="mid">Set 2 · juegos 4–3</span>
+              <span class="g">30</span><span class="s">4 3</span>
+              <span class="nm" style="text-align:right">Pérez</span>
+            </div>
+
+            <p class="hint">Marcá primero dónde empieza el partido en el video. <kbd>Espacio</kbd> reproduce y pausa · las flechas mueven 3 segundos · <kbd>M</kbd> marca acá.</p>
+          </div>
+
+          <aside class="margin">
+            <h3>Marcas <button style="border:0;background:0;font:inherit;color:var(--pen);font-size:12px">↶ deshacer</button></h3>
+
+            <div class="mgroup">
+              <span>Saque</span>
+              <button class="mark done">1er saque IN <span class="n">1</span></button>
+              <button class="mark off">1er saque OUT <span class="n">0</span></button>
+              <button class="mark off">2do saque IN <span class="n">0</span></button>
+              <button class="mark">Ace <span class="n">0</span></button>
+              <button class="mark off">Doble falta <span class="n">0</span></button>
+            </div>
+            <div class="mgroup">
+              <span>Devolución</span>
+              <button class="mark done">Devolución en juego <span class="n">1</span></button>
+              <button class="mark off">Error devol. OUT <span class="n">0</span></button>
+              <button class="mark">Ganado dev. 1er saque <span class="n">0</span></button>
+            </div>
+            <div class="mgroup">
+              <span>Definición y rally</span>
+              <button class="mark done">Winner <span class="n">1</span></button>
+              <button class="mark">Error no forzado <span class="n">0</span></button>
+              <button class="mark done">Rally 1–4 <span class="n">1</span></button>
+              <button class="mark">Rally 5–8 <span class="n">0</span></button>
+            </div>
+            <div class="mgroup">
+              <span>Resultado del punto</span>
+              <button class="mark won">Punto ganado <span class="n">1</span></button>
+              <button class="mark lost">Punto perdido <span class="n">0</span></button>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== REPORTE ===================== -->
+  <section class="screen" data-scr="report" hidden>
+    <div class="app">
+      <aside class="spine">
+        <div class="who"><strong>Prof. Martín Aguilar</strong><span>Club Náutico Hacoaj</span></div>
+        <a href="#" class="on">Partidos</a>
+        <a href="#">Alumnos</a>
+        <button class="out">Salir</button>
+      </aside>
+      <div class="page">
+        <div class="doc">
+          <div class="lbl" style="text-align:center">Reporte del partido</div>
+          <h1 class="docttl">Álvaro Marina vs Javier Pérez</h1>
+          <div class="docsub">Interclubes APT · 1ra — polvo · 9 de septiembre de 2025</div>
+          <div class="docsub mono" style="font-style:normal">1 h 42 min · 214 eventos · 2 sets</div>
+          <div class="rule-c"></div>
+
+          <p class="abstract">El primer saque sostuvo el partido: 58% de efectividad y 71% de puntos
+            ganados cuando entró. El desnivel apareció en la definición — 22 errores no forzados
+            contra 14 winners, y dos de las tres dobles faltas llegaron en el segundo set, con el
+            marcador ajustado.</p>
+
+          <div class="figs">
+            <div class="fig"><div class="v">58<small>%</small></div><div class="c">1er saque adentro</div></div>
+            <div class="fig"><div class="v">71<small>%</small></div><div class="c">puntos con 1er saque</div></div>
+            <div class="fig"><div class="v">14<small>/22</small></div><div class="c">winners / no forzados</div></div>
+          </div>
+
+          <h2>Desglose por categoría</h2>
+          <table>
+            <caption>Conteo de eventos por set. Los porcentajes son sobre puntos jugados.</caption>
+            <thead><tr><th>KPI</th><th>Set 1</th><th>Set 2</th><th>Total</th></tr></thead>
+            <tbody>
+              <tr><td>1er saque IN</td><td>24</td><td>19</td><td>43</td></tr>
+              <tr><td>1er saque OUT</td><td>16</td><td>15</td><td>31</td></tr>
+              <tr><td>Ace</td><td>4</td><td>2</td><td>6</td></tr>
+              <tr><td>Doble falta</td><td>1</td><td>2</td><td>3</td></tr>
+              <tr><td>Winner</td><td>9</td><td>5</td><td>14</td></tr>
+              <tr><td>Error no forzado</td><td>10</td><td>12</td><td>22</td></tr>
+              <tr><td>Rally 9+ golpes</td><td>6</td><td>8</td><td>14</td></tr>
+            </tbody>
+          </table>
+
+          <div class="exprow">
+            <button class="btn">Exportar PDF</button>
+            <button class="btn ghost">Exportar CSV</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== NUEVO ===================== -->
+  <section class="screen" data-scr="new" hidden>
+    <div class="app">
+      <aside class="spine">
+        <div class="who"><strong>Prof. Martín Aguilar</strong><span>Club Náutico Hacoaj</span></div>
+        <a href="#" class="on">Partidos</a>
+        <a href="#">Alumnos</a>
+        <button class="out">Salir</button>
+      </aside>
+      <div class="page">
+        <div class="ttl"><div><h1>Analizar un partido</h1><div class="kicker">un partido siempre es de un alumno</div></div></div>
+
+        <fieldset class="fset">
+          <legend>Alumno</legend>
+          <div class="chips">
+            <button class="on">Álvaro Marina</button><button>Sofía Ledesma</button>
+            <button>Tomás Vera</button><button>Nicolás Ferro</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="fset">
+          <legend>El partido</legend>
+          <div class="frow">
+            <label><span class="lbl">Rival (opcional)</span><input value="Javier Pérez"></label>
+            <label><span class="lbl">Torneo (opcional)</span><input value="Interclubes APT — 1ra"></label>
+            <label><span class="lbl">Superficie</span><select><option>Polvo</option><option>Cemento</option><option>Césped</option></select></label>
+            <label><span class="lbl">Formato</span><select><option>A 3 sets</option><option>2 sets y super tiebreak</option></select></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="fset">
+          <legend>El video</legend>
+          <p class="hint" style="margin:8px 0 14px">El archivo se queda en tu máquina. Lo único que se guarda en el servidor es en qué momento del video pasó cada cosa.</p>
+          <button class="btn ghost">Cambiar el video</button>
+          <span class="mono" style="display:block;margin-top:10px;font-size:12px;color:var(--ink-faint)">D:\Partidos\marina-perez-09-09.mp4 · 3.8 GB</span>
+        </fieldset>
+
+        <button class="btn" style="margin-top:22px">Crear el partido</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  const btns=document.querySelectorAll('.switch button');
+  const scrs=document.querySelectorAll('.screen');
+  btns.forEach(b=>b.addEventListener('click',()=>{
+    btns.forEach(x=>x.classList.toggle('on',x===b));
+    scrs.forEach(s=>s.hidden=s.dataset.scr!==b.dataset.scr);
+    window.scrollTo(0,0);
+  }));
+</script>
+</body>
+</html>
