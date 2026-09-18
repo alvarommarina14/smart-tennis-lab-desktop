@@ -1,7 +1,7 @@
-import { app, BrowserWindow, dialog, ipcMain, net, protocol, safeStorage } from 'electron';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { app, BrowserWindow, dialog, ipcMain, Menu, protocol, safeStorage } from 'electron';
+import { createReadStream, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { Readable } from 'node:stream';
 
 const DEV_SERVER_URL = 'http://localhost:5173';
 const VIDEO_SCHEME = 'stl-video';
@@ -76,15 +76,75 @@ function allowVideo(filePath: string) {
   }
 }
 
+const VIDEO_MIME: Record<string, string> = {
+  '.mp4': 'video/mp4',
+  '.m4v': 'video/mp4',
+  '.mov': 'video/quicktime',
+  '.webm': 'video/webm',
+  '.mkv': 'video/x-matroska',
+  '.avi': 'video/x-msvideo',
+  '.ts': 'video/mp2t',
+};
+
+function fileStream(filePath: string, start?: number, end?: number) {
+  const node =
+    start === undefined ? createReadStream(filePath) : createReadStream(filePath, { start, end });
+  return Readable.toWeb(node) as unknown as ReadableStream<Uint8Array>;
+}
+
+// El <video> pide el archivo por tramos (cabecera Range) para poder saltar por un partido de dos
+// horas sin bajarlo entero. Hay que responder esos tramos a mano: net.fetch sobre file:// ignora
+// el Range y devuelve todo con estado 200, y ahí Chromium no puede leer la duración de un MP4 con
+// el moov al final, así que la barra de reproducción se queda pegada en 0.
 function registerVideoProtocol() {
   protocol.handle(VIDEO_SCHEME, (request) => {
     const requested = new URL(request.url).searchParams.get('path');
     if (!requested || !allowedVideos().includes(requested) || !existsSync(requested)) {
       return new Response('No autorizado', { status: 403 });
     }
-    // net.fetch sobre file:// respeta los Range, que es lo que hace posible moverse por un video
-    // de dos horas sin descargarlo entero.
-    return net.fetch(pathToFileURL(requested).toString(), { bypassCustomProtocolHandlers: true });
+
+    const size = statSync(requested).size;
+    const type = VIDEO_MIME[path.extname(requested).toLowerCase()] ?? 'video/mp4';
+    const range = request.headers.get('range');
+
+    if (!range) {
+      return new Response(fileStream(requested), {
+        status: 200,
+        headers: {
+          'Content-Type': type,
+          'Content-Length': String(size),
+          'Accept-Ranges': 'bytes',
+        },
+      });
+    }
+
+    const match = /^bytes=(\d*)-(\d*)$/.exec(range.trim());
+    if (!match || (match[1] === '' && match[2] === '')) {
+      return new Response('Rango inválido', {
+        status: 416,
+        headers: { 'Content-Range': `bytes */${size}` },
+      });
+    }
+
+    const start = match[1] === '' ? size - Number(match[2]) : Number(match[1]);
+    const end = match[1] === '' || match[2] === '' ? size - 1 : Math.min(Number(match[2]), size - 1);
+
+    if (!Number.isFinite(start) || start < 0 || start > end || start >= size) {
+      return new Response('Rango fuera de límites', {
+        status: 416,
+        headers: { 'Content-Range': `bytes */${size}` },
+      });
+    }
+
+    return new Response(fileStream(requested, start, end), {
+      status: 206,
+      headers: {
+        'Content-Type': type,
+        'Content-Length': String(end - start + 1),
+        'Content-Range': `bytes ${start}-${end}/${size}`,
+        'Accept-Ranges': 'bytes',
+      },
+    });
   });
 }
 
@@ -149,6 +209,10 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // La app no usa la barra de menú nativa (File / Edit / View / …). Sacarla deja la ventana
+  // limpia; los atajos que importan (copiar, pegar, recargar en dev) los maneja Chromium igual.
+  Menu.setApplicationMenu(null);
+
   registerVideoProtocol();
   registerIpc();
   createWindow();
