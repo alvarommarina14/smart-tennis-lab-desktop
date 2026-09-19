@@ -11,6 +11,9 @@ export type MatchSummary = {
   playerId: string;
   playerName: string | null;
   opponentName: string | null;
+  tournament: string | null;
+  surface: Surface | null;
+  discipline: Discipline;
   status: MatchStatus;
   startedAt: string;
   finishedAt: string | null;

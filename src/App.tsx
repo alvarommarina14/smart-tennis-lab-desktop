@@ -7,6 +7,7 @@ import { LoginScreen } from '@/screens/LoginScreen';
 import { AnalysisScreen } from '@/screens/AnalysisScreen';
 import { MatchesScreen } from '@/screens/MatchesScreen';
 import { NewMatchScreen } from '@/screens/NewMatchScreen';
+import { PlayerScreen } from '@/screens/PlayerScreen';
 import { PlayersScreen } from '@/screens/PlayersScreen';
 import { ReportScreen } from '@/screens/ReportScreen';
 
@@ -35,6 +36,7 @@ export function App() {
           <Route path="/partidos/:id" element={<AnalysisScreen />} />
           <Route path="/partidos/:id/reporte" element={<ReportScreen />} />
           <Route path="/alumnos" element={<PlayersScreen />} />
+          <Route path="/alumnos/:id" element={<PlayerScreen />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

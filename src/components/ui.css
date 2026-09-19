@@ -129,3 +129,25 @@
   text-transform: uppercase;
   color: var(--text-faint);
 }
+
+.stl-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 5, 8, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  z-index: 30;
+}
+
+.stl-modal {
+  width: 100%;
+  max-width: 360px;
+}
+
+.stl-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
