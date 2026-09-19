@@ -1,9 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { fetchKpiCatalog, type Kpi } from '@/api/kpis';
-import { fetchMatch, startSet, syncEvents, type SyncEvent } from '@/api/matches';
+import { fetchMatch, finishMatch, startSet, syncEvents, type SyncEvent } from '@/api/matches';
 import { formatClock, VideoPlayer, type VideoHandle } from '@/components/VideoPlayer';
 import { Button, ErrorBox } from '@/components/ui';
 import { readDraft, writeDraft, type DraftEvent } from '@/lib/analysisDraft';
@@ -41,6 +41,7 @@ const SHORT_LABELS: Record<string, string> = {
 export function AnalysisScreen() {
   const { id: matchId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const player = useRef<VideoHandle>(null);
 
   const [videoPath, setVideoPath] = useState(() => (matchId ? videoFor(matchId) : null));
@@ -52,9 +53,11 @@ export function AnalysisScreen() {
   const [setIds, setSetIds] = useState<string[]>([]);
   const [flashCode, setFlashCode] = useState<string | null>(null);
   const [showEvents, setShowEvents] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [durationMs, setDurationMs] = useState(0);
   const [currentMs, setCurrentMs] = useState(0);
   const flashTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const shortcutsRef = useRef<HTMLDivElement>(null);
 
   const match = useQuery({
     queryKey: ['match', matchId],
@@ -68,6 +71,17 @@ export function AnalysisScreen() {
     enabled: Boolean(match.data),
     staleTime: Infinity,
   });
+
+  const finish = useMutation({
+    mutationFn: () => finishMatch(matchId as string, 'FINISHED', new Date().toISOString()),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['match', matchId] }),
+  });
+
+  function finishMatchNow() {
+    if (window.confirm('¿Terminar el partido? La duración del reporte queda fija a partir de ahora.')) {
+      finish.mutate();
+    }
+  }
 
   useEffect(() => {
     if (matchId) {
@@ -149,6 +163,12 @@ export function AnalysisScreen() {
   useEffect(() => () => clearTimeout(flashTimer.current), []);
 
   const markStart = () => {
+    if (
+      draft.matchStartOffsetMs !== null &&
+      !window.confirm('Ya marcaste el inicio del partido. ¿Volver a marcarlo? Los eventos cargados van a recalcular su offset contra el nuevo punto.')
+    ) {
+      return;
+    }
     const at = player.current?.currentMs() ?? 0;
     setDraft((previous) => ({ ...previous, matchStartOffsetMs: at }));
   };
@@ -263,6 +283,7 @@ export function AnalysisScreen() {
       }
       if (keyEvent.code === 'Escape') {
         setShowEvents(false);
+        setShowShortcuts(false);
       }
       if (keyEvent.code === 'Space') {
         keyEvent.preventDefault();
@@ -278,6 +299,17 @@ export function AnalysisScreen() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  useEffect(() => {
+    if (!showShortcuts) return;
+    function onClickOutside(mouseEvent: MouseEvent) {
+      if (!shortcutsRef.current?.contains(mouseEvent.target as Node)) {
+        setShowShortcuts(false);
+      }
+    }
+    window.addEventListener('mousedown', onClickOutside);
+    return () => window.removeEventListener('mousedown', onClickOutside);
+  }, [showShortcuts]);
 
   if (!matchId || match.isPending) {
     return <p>Cargando…</p>;
@@ -301,6 +333,29 @@ export function AnalysisScreen() {
           </span>
         </div>
         <div className="analysis__actions">
+          <div className="analysis__shortcuts" ref={shortcutsRef}>
+            <Button
+              variant="secondary"
+              onClick={() => setShowShortcuts((open) => !open)}
+              aria-expanded={showShortcuts}
+            >
+              ⌨ Atajos
+            </Button>
+            <div
+              className={`analysis__shortcuts-panel${showShortcuts ? ' analysis__shortcuts-panel--open' : ''}`}
+              role="tooltip"
+            >
+              <div>
+                <kbd>Espacio</kbd> reproducir / pausar
+              </div>
+              <div>
+                <kbd>←</kbd> <kbd>→</kbd> retroceder / avanzar 3 s
+              </div>
+              <div>
+                <kbd>Esc</kbd> cerrar el cajón de eventos
+              </div>
+            </div>
+          </div>
           <Button
             variant="secondary"
             onClick={() => setShowEvents((open) => !open)}
@@ -311,11 +366,23 @@ export function AnalysisScreen() {
           <Button variant="secondary" onClick={() => void flush()} loading={syncing}>
             Sincronizar
           </Button>
+          {match.data.status === 'IN_PROGRESS' ? (
+            <Button variant="secondary" onClick={finishMatchNow} loading={finish.isPending}>
+              Terminar partido
+            </Button>
+          ) : null}
           <Button variant="secondary" onClick={() => navigate('/')}>
             Volver
           </Button>
         </div>
       </header>
+
+      {finish.isError ? (
+        <ErrorBox
+          title="No se pudo terminar el partido"
+          message={finish.error instanceof Error ? finish.error.message : undefined}
+        />
+      ) : null}
 
       {syncError ? <ErrorBox title={syncError} /> : null}
       {videoError ? <ErrorBox title="Problema con el video" message={videoError} /> : null}
@@ -530,6 +597,10 @@ export function AnalysisScreen() {
               </div>
             );
           })}
+
+          <div className="analysis__panel-next">
+            <Button onClick={() => navigate(`/partidos/${matchId}/reporte`)}>Ir al reporte →</Button>
+          </div>
         </aside>
       </div>
 

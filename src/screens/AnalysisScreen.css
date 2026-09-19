@@ -29,6 +29,44 @@
   gap: var(--space-sm);
 }
 
+/* ---------- atajos ---------- */
+.analysis__shortcuts {
+  position: relative;
+}
+
+.analysis__shortcuts-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 15;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 240px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-md);
+  font-size: 12.5px;
+  color: var(--text-muted);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+}
+
+.analysis__shortcuts:hover .analysis__shortcuts-panel,
+.analysis__shortcuts-panel--open {
+  display: flex;
+}
+
+.analysis__shortcuts-panel kbd {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text);
+}
+
 .analysis__body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
@@ -526,6 +564,16 @@
 
 .analysis__tag--flash {
   animation: analysis-tag-flash 0.32s ease;
+}
+
+.analysis__panel-next {
+  margin-top: var(--space-sm);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border);
+}
+
+.analysis__panel-next .stl-button {
+  width: 100%;
 }
 
 @keyframes analysis-tag-flash {
