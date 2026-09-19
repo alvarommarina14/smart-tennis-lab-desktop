@@ -60,6 +60,33 @@ async function handle<T>(response: Response): Promise<T> {
   return (await response.json()) as T;
 }
 
+export type DownloadedFile = { blob: Blob; fileName: string | null };
+
+export async function apiRequestFile(path: string, accept: string): Promise<DownloadedFile> {
+  const options: RequestOptions = { headers: { Accept: accept } };
+  const response = await send(path, options);
+
+  if (response.status === 401) {
+    const renewed = await refreshAccessToken();
+    if (renewed) {
+      return handleFile(await send(path, options));
+    }
+  }
+
+  return handleFile(response);
+}
+
+async function handleFile(response: Response): Promise<DownloadedFile> {
+  if (!response.ok) {
+    const { message } = await readError(response);
+    throw new ApiError(response.status, message);
+  }
+
+  const disposition = response.headers.get('content-disposition');
+  const fileName = disposition ? /filename="?([^";]+)"?/.exec(disposition)?.[1] ?? null : null;
+  return { blob: await response.blob(), fileName };
+}
+
 async function readError(response: Response) {
   try {
     const payload = (await response.json()) as {

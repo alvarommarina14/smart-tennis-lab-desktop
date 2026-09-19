@@ -60,7 +60,7 @@ export function MatchesScreen() {
       {matches.length > 0 ? (
         <section className="stl-section">
           <SectionTitle label="A revisar" count={matches.length} />
-          <Table head={['Alumno', 'Rival', 'Fecha', 'Estado']}>
+          <Table head={['Alumno', 'Rival', 'Fecha', 'Estado', '']}>
             {matches.map((match) => (
               <tr
                 key={match.id}
@@ -72,6 +72,17 @@ export function MatchesScreen() {
                 <td className="stl-table__mono">{formatDateTime(match.startedAt)}</td>
                 <td>
                   <Tag tone={STATUS_TONE[match.status]}>{statusLabel(match.status)}</Tag>
+                </td>
+                <td className="stl-table__actions">
+                  <Button
+                    variant="secondary"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      navigate(`/partidos/${match.id}/reporte`);
+                    }}
+                  >
+                    Reporte
+                  </Button>
                 </td>
               </tr>
             ))}
