@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { ApiError } from '@/api/client';
 import {
@@ -11,11 +11,12 @@ import {
   type DominantHand,
 } from '@/api/players';
 import { EmptyState, Row, ScreenHeader } from '@/components/List';
-import { Button, Card, DateField, ErrorBox, Field } from '@/components/ui';
+import { Button, Card, DateField, ErrorBox, Field, Modal } from '@/components/ui';
 import { formatDate } from '@/lib/format';
 
 export function PlayersScreen() {
   const location = useLocation();
+  const navigate = useNavigate();
   const openCreate = Boolean((location.state as { openCreate?: boolean } | null)?.openCreate);
   const [creating, setCreating] = useState(openCreate);
 
@@ -29,14 +30,14 @@ export function PlayersScreen() {
       <ScreenHeader
         title="Alumnos"
         lede="Cada alumno junta los partidos que le vas analizando."
-        actions={
-          <Button onClick={() => setCreating((open) => !open)}>
-            {creating ? 'Cancelar' : 'Nuevo alumno'}
-          </Button>
-        }
+        actions={<Button onClick={() => setCreating(true)}>Nuevo alumno</Button>}
       />
 
-      {creating ? <NewPlayerForm onDone={() => setCreating(false)} /> : null}
+      {creating ? (
+        <Modal onClose={() => setCreating(false)}>
+          <NewPlayerForm onDone={() => setCreating(false)} />
+        </Modal>
+      ) : null}
 
       {error ? <ErrorBox title="No se pudo traer la lista" message={error.message} /> : null}
       {isPending ? <p>Cargando…</p> : null}
@@ -55,6 +56,7 @@ export function PlayersScreen() {
             title={playerName(player)}
             subtitle={player.birthDate ? `Nacimiento ${formatDate(player.birthDate)}` : undefined}
             badge={player.dominantHand === 'LEFT' ? 'Zurdo' : undefined}
+            onClick={() => navigate(`/alumnos/${player.id}`)}
           />
         ))}
       </div>
@@ -101,8 +103,9 @@ function NewPlayerForm({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <form onSubmit={submit} style={{ marginBottom: 'var(--space-xl)' }}>
+    <form onSubmit={submit}>
       <Card>
+        <strong>Nuevo alumno</strong>
         {error ? <ErrorBox title={error} /> : null}
         <Field
           label="Nombre"
@@ -134,9 +137,14 @@ function NewPlayerForm({ onDone }: { onDone: () => void }) {
             <option value="LEFT">Zurdo</option>
           </select>
         </label>
-        <Button type="submit" loading={mutation.isPending} disabled={!firstName || !lastName}>
-          Guardar alumno
-        </Button>
+        <div className="stl-modal-actions">
+          <Button type="button" variant="secondary" onClick={onDone}>
+            Cancelar
+          </Button>
+          <Button type="submit" loading={mutation.isPending} disabled={!firstName || !lastName}>
+            Guardar alumno
+          </Button>
+        </div>
       </Card>
     </form>
   );

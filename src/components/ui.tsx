@@ -1,4 +1,11 @@
-import { useState, type ButtonHTMLAttributes, type ChangeEvent, type InputHTMLAttributes, type ReactNode } from 'react';
+import {
+  useEffect,
+  useState,
+  type ButtonHTMLAttributes,
+  type ChangeEvent,
+  type InputHTMLAttributes,
+  type ReactNode,
+} from 'react';
 
 import { dmyToIso, isPastIso, isoToDmy, maskDate } from '@/lib/dateInput';
 
@@ -99,4 +106,27 @@ export function ErrorBox({ title, message }: { title: string; message?: string }
 
 export function Card({ children }: { children: ReactNode }) {
   return <div className="stl-card">{children}</div>;
+}
+
+export function Modal({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.code === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div className="stl-modal-backdrop" onClick={onClose} role="presentation">
+      <div
+        className="stl-modal"
+        role="dialog"
+        aria-modal="true"
+        onClick={(event) => event.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>
+  );
 }
