@@ -3,6 +3,7 @@ import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { useAuthStore } from '@/auth/store';
 import { Layout } from '@/components/Layout';
+import { TitleBar } from '@/components/TitleBar';
 import { LoginScreen } from '@/screens/LoginScreen';
 import { AnalysisScreen } from '@/screens/AnalysisScreen';
 import { MatchesScreen } from '@/screens/MatchesScreen';
@@ -19,27 +20,28 @@ export function App() {
     bootstrap();
   }, [bootstrap]);
 
-  if (status === 'loading') {
-    return null;
-  }
-
-  if (status === 'signedOut') {
-    return <LoginScreen />;
-  }
-
   return (
-    <HashRouter>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route path="/" element={<MatchesScreen />} />
-          <Route path="/partidos/nuevo" element={<NewMatchScreen />} />
-          <Route path="/partidos/:id" element={<AnalysisScreen />} />
-          <Route path="/partidos/:id/reporte" element={<ReportScreen />} />
-          <Route path="/alumnos" element={<PlayersScreen />} />
-          <Route path="/alumnos/:id" element={<PlayerScreen />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
-    </HashRouter>
+    <div className="app-shell">
+      <TitleBar />
+      <div className="app-shell__body">
+        {status === 'loading' ? null : status === 'signedOut' ? (
+          <LoginScreen />
+        ) : (
+          <HashRouter>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route path="/" element={<MatchesScreen />} />
+                <Route path="/partidos/nuevo" element={<NewMatchScreen />} />
+                <Route path="/partidos/:id" element={<AnalysisScreen />} />
+                <Route path="/partidos/:id/reporte" element={<ReportScreen />} />
+                <Route path="/alumnos" element={<PlayersScreen />} />
+                <Route path="/alumnos/:id" element={<PlayerScreen />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Route>
+            </Routes>
+          </HashRouter>
+        )}
+      </div>
+    </div>
   );
 }

@@ -12,6 +12,17 @@ const bridge = {
     pick: (): Promise<string | null> => ipcRenderer.invoke('video:pick'),
     exists: (filePath: string): Promise<boolean> => ipcRenderer.invoke('video:exists', filePath),
   },
+  window: {
+    minimize: (): Promise<void> => ipcRenderer.invoke('window:minimize'),
+    toggleMaximize: (): Promise<void> => ipcRenderer.invoke('window:toggleMaximize'),
+    close: (): Promise<void> => ipcRenderer.invoke('window:close'),
+    isMaximized: (): Promise<boolean> => ipcRenderer.invoke('window:isMaximized'),
+    onMaximizedChange: (callback: (maximized: boolean) => void) => {
+      const listener = (_event: unknown, maximized: boolean) => callback(maximized);
+      ipcRenderer.on('window:maximized-changed', listener);
+      return () => ipcRenderer.removeListener('window:maximized-changed', listener);
+    },
+  },
 };
 
 contextBridge.exposeInMainWorld('stl', bridge);

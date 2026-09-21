@@ -1,70 +1,69 @@
 .layout {
   display: grid;
-  grid-template-columns: 232px 1fr;
+  grid-template-columns: var(--sidebar-width) 1fr;
   height: 100%;
 }
 
 .layout__sidebar {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
-  background: var(--background);
-  border-right: 1px solid var(--border-soft);
-  padding: var(--space-lg);
-}
-
-.layout__brand {
-  display: flex;
   align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-sm) var(--space-sm) var(--space-lg);
-  border-bottom: 1px solid var(--border-soft);
-}
-
-.layout__mark {
-  width: 26px;
-  height: 26px;
-  flex: none;
-  border-radius: 7px;
-  background: linear-gradient(140deg, var(--primary), var(--accent-cyan));
-}
-
-.layout__brand strong {
-  display: block;
-  font-size: 13.5px;
-  color: var(--text-strong);
-}
-
-.layout__brand span {
-  color: var(--text-faint);
-  font-size: 11.5px;
+  gap: var(--space-lg);
+  padding: var(--space-lg) 0;
 }
 
 .layout__nav {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: var(--space-sm);
   flex: 1;
 }
 
-.layout__link {
+.layout__icon-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  padding: 0;
+  background: none;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--text-muted);
   text-decoration: none;
-  padding: 9px var(--space-md);
-  border-radius: var(--radius-sm);
-  font-weight: 500;
-  font-size: 13px;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
 }
 
-.layout__link:hover {
+.layout__icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.layout__icon-btn:hover {
   background: var(--surface-raised);
   color: var(--text);
 }
 
-.layout__link.active {
+.layout__icon-btn.active {
   background: var(--surface-raised);
-  color: var(--text-strong);
-  box-shadow: inset 2px 0 0 var(--primary);
+  color: var(--primary-bright);
+}
+
+.layout__icon-btn:focus-visible {
+  outline: 2px solid var(--primary-bright);
+  outline-offset: 2px;
+}
+
+.layout__logout {
+  flex: none;
+}
+
+.layout__logout:hover {
+  background: rgba(242, 85, 90, 0.14);
+  color: var(--danger);
 }
 
 .layout__content {

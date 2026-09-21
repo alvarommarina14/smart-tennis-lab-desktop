@@ -12,6 +12,13 @@ declare global {
         pick: () => Promise<string | null>;
         exists: (filePath: string) => Promise<boolean>;
       };
+      window: {
+        minimize: () => Promise<void>;
+        toggleMaximize: () => Promise<void>;
+        close: () => Promise<void>;
+        isMaximized: () => Promise<boolean>;
+        onMaximizedChange: (callback: (maximized: boolean) => void) => () => void;
+      };
     };
   }
 }

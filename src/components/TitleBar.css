@@ -1,0 +1,73 @@
+.titlebar {
+  display: flex;
+  align-items: stretch;
+  height: 40px;
+  flex: none;
+  background: transparent;
+  -webkit-app-region: drag;
+}
+
+.titlebar__drag {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.titlebar__brand {
+  width: var(--sidebar-width);
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.titlebar__mark {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  border-radius: 5px;
+  background: linear-gradient(140deg, var(--primary), var(--accent-cyan));
+}
+
+.titlebar__controls {
+  display: flex;
+  align-items: stretch;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+.titlebar__button:hover {
+  background: linear-gradient(140deg, rgba(99, 102, 241, 0.2), rgba(34, 211, 238, 0.16));
+  color: var(--primary-bright);
+}
+
+.titlebar__button:active {
+  background: linear-gradient(140deg, rgba(99, 102, 241, 0.32), rgba(34, 211, 238, 0.26));
+}
+
+.titlebar__button--close:hover {
+  background: var(--danger);
+  color: var(--primary-text);
+}
+
+.titlebar__button--close:active {
+  background: var(--danger);
+}
+
+.titlebar__button:focus-visible {
+  outline: 2px solid var(--primary-bright);
+  outline-offset: -2px;
+}

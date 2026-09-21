@@ -148,10 +148,26 @@ function registerVideoProtocol() {
   });
 }
 
-function registerIpc() {
+function registerIpc(window: BrowserWindow) {
   ipcMain.handle('session:read', () => readSession());
   ipcMain.handle('session:write', (_event, payload: string) => writeSession(payload));
   ipcMain.handle('session:clear', () => clearSession());
+
+  // La ventana es sin marco (frame: false) para poder dibujar los controles de
+  // minimizar/maximizar/cerrar con el estilo de la app en vez del que pone Windows.
+  ipcMain.handle('window:minimize', () => window.minimize());
+  ipcMain.handle('window:toggleMaximize', () => {
+    if (window.isMaximized()) {
+      window.unmaximize();
+    } else {
+      window.maximize();
+    }
+  });
+  ipcMain.handle('window:close', () => window.close());
+  ipcMain.handle('window:isMaximized', () => window.isMaximized());
+
+  window.on('maximize', () => window.webContents.send('window:maximized-changed', true));
+  window.on('unmaximize', () => window.webContents.send('window:maximized-changed', false));
 
   ipcMain.handle('video:pick', async () => {
     const result = await dialog.showOpenDialog({
@@ -177,6 +193,7 @@ function createWindow() {
     minHeight: 720,
     backgroundColor: '#0F1418',
     show: false,
+    frame: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -214,12 +231,13 @@ app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
 
   registerVideoProtocol();
-  registerIpc();
-  createWindow();
+  const window = createWindow();
+  registerIpc(window);
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
+      const newWindow = createWindow();
+      registerIpc(newWindow);
     }
   });
 });
